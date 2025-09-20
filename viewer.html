@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Portal Viewer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
+            color: #fff; 
+            font-family: 'Orbitron', monospace;
+            overflow: hidden;
+            perspective: 2000px;
+            position: relative;
+        }
+
+        /* Dark Silicon Glass Background with Grid */
+        :root {
+            --bg-offset-x: 0px;
+            --bg-offset-y: 0px;
+            --tilt-intensity: 0;
+            --bg-scale: 1.0;
+            --bg-rotation: 0deg;
+            --bg-blur: 0px;
+            --extreme-glow: 0;
+            --pulse-speed: 2s;
+        }
+        
+        .silicon-background {
+            position: fixed;
+            top: -100px; left: -100px; right: -100px; bottom: -100px; /* Oversized for parallax */
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 255, 255, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 255, 0.03) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a1a2a 30%, #0f0f1f 70%, #0a0a0a 100%);
+            backdrop-filter: blur(calc(1px + var(--bg-blur)));
+            z-index: -2;
+            /* DRAMATIC parallax movement with scaling, rotation, and blur */
+            transform: 
+                translate(var(--bg-offset-x), var(--bg-offset-y)) 
+                scale(var(--bg-scale)) 
+                rotate(var(--bg-rotation));
+            transition: transform 0.1s ease-out, backdrop-filter 0.1s ease-out;
+        }
+
+        .silicon-background::before {
+            content: '';
+            position: absolute;
+            top: -50px; left: -50px; right: -50px; bottom: -50px; /* Oversized for parallax */
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridShift 20s linear infinite;
+            z-index: -1;
+            /* Double parallax for grid layer */
+            transform: translate(calc(var(--bg-offset-x) * 1.5), calc(var(--bg-offset-y) * 1.5));
+        }
+
+        @keyframes gridShift {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+
+        /* Main Portal Container */
+        .portal-viewer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+            /* CRITICAL FIX: Prevent control panel from affecting centering */
+            padding-right: 0;
+            margin-right: 0;
+        }
+
+        /* Portal Window */
+        .visualization-portal {
+            position: relative;
+            width: 85vw;
+            height: 85vh;
+            max-width: 1200px;
+            max-height: 800px;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 
+                0 0 50px rgba(0, 255, 255, 0.2),
+                0 0 100px rgba(255, 0, 255, 0.1),
+                inset 0 0 50px rgba(0, 0, 0, 0.5);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform-style: preserve-3d;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .visualization-portal:hover {
+            transform: scale(1.08) translateZ(30px);
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 
+                0 0 80px rgba(0, 255, 255, 0.4),
+                0 0 150px rgba(255, 0, 255, 0.2),
+                inset 0 0 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* DRAMATIC EXTREME TILT EFFECTS */
+        .visualization-portal {
+            /* Dynamic glow effects during extreme tilts */
+            filter: 
+                brightness(calc(1 + var(--extreme-glow) * 0.3))
+                saturate(calc(1 + var(--extreme-glow) * 0.5))
+                hue-rotate(calc(var(--extreme-glow) * 30deg));
+            
+            /* Pulsing animation during extreme tilts */
+            animation: 
+                extremeTiltPulse var(--pulse-speed) ease-in-out infinite;
+            animation-play-state: 
+                calc(var(--extreme-glow) > 0 ? running : paused);
+        }
+
+        @keyframes extremeTiltPulse {
+            0%, 100% { 
+                filter: 
+                    brightness(calc(1 + var(--extreme-glow) * 0.3))
+                    saturate(calc(1 + var(--extreme-glow) * 0.5))
+                    hue-rotate(calc(var(--extreme-glow) * 30deg)); 
+            }
+            50% { 
+                filter: 
+                    brightness(calc(1 + var(--extreme-glow) * 0.6))
+                    saturate(calc(1 + var(--extreme-glow) * 0.8))
+                    hue-rotate(calc(var(--extreme-glow) * 60deg)); 
+            }
+        }
+
+        /* RGB Flash Effect */
+        .visualization-portal::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(
+                calc(45deg + (var(--mouse-x, 50) - 50) * 1.2deg),
+                transparent 15%,
+                rgba(0, 255, 255, 0.2) 40%,
+                rgba(255, 0, 255, 0.25) 50%,
+                rgba(255, 100, 0, 0.2) 60%,
+                transparent 85%
+            );
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            border-radius: 18px;
+            mix-blend-mode: screen;
+        }
+
+        .visualization-portal:hover::after {
+            opacity: 1;
+        }
+
+        /* Canvas Container */
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        /* VIB34D Engine Canvases */
+        .engine-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 18px;
+        }
+
+        /* ACCENT TWIN CANVASES: Complementary visualization system */
+        .twin-canvas {
+            mix-blend-mode: multiply;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .twin-canvas.active {
+            opacity: 0.3 !important;
+        }
+
+        /* Twin canvas specific blend modes for interesting interaction */
+        #twin-background-canvas { mix-blend-mode: overlay; }
+        #twin-shadow-canvas { mix-blend-mode: multiply; }
+        #twin-content-canvas { mix-blend-mode: screen; }
+        #twin-highlight-canvas { mix-blend-mode: color-dodge; }
+        #twin-accent-canvas { mix-blend-mode: difference; }
+
+        /* Audio Toggle Buttons (Inside Control Panel) */
+        .audio-toggle {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+        }
+
+        .audio-toggle:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .audio-toggle.active {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: rgba(0, 255, 255, 0.8);
+            color: #ffffff;
+        }
+        
+        .control-panel {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(25px);
+            transform: translateX(75%);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            width: auto;
+            min-width: 160px;
+            /* CRITICAL FIX: Ensure panel doesn't affect layout flow */
+            pointer-events: auto;
+            will-change: transform;
+        }
+
+        .control-panel:hover,
+        .control-panel.expanded {
+            transform: translateX(0%);
+            border-color: rgba(0, 255, 255, 0.5);
+            box-shadow: 0 0 45px rgba(0, 255, 255, 0.25);
+        }
+
+        .control-panel::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 30px;
+            background: linear-gradient(to right, transparent, rgba(0, 255, 255, 0.4));
+            border-radius: 0 4px 4px 0;
+            transition: all 0.4s ease;
+        }
+
+        .control-panel:hover::before,
+        .control-panel.expanded::before {
+            width: 12px;
+            background: linear-gradient(to right, transparent, rgba(0, 255, 255, 0.7));
+        }
+
+        /* Minimal Info Display */
+        .info-display {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-size: 12px;
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .info-display h3 {
+            margin: 0 0 8px 0;
+            color: #00ffff;
+            font-size: 14px;
+        }
+
+        .info-display p {
+            margin: 3px 0;
+            color: #ccc;
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .visualization-portal {
+                width: 95vw;
+                height: 85vh;
+                border-radius: 15px;
+            }
+            
+            .audio-toggle {
+                top: 15px;
+                right: 15px;
+                padding: 10px 16px;
+                font-size: 12px;
+            }
+            
+            .info-display {
+                bottom: 15px;
+                left: 15px;
+                padding: 12px 15px;
+                font-size: 11px;
+            }
+        }
+
+        /* Loading State */
+        .loading {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00ffff;
+            font-size: 18px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        /* Share Modal */
+        .share-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+        }
+
+        .share-modal-content {
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            font-family: 'Orbitron', monospace;
+            position: relative;
+        }
+
+        .share-modal h2 {
+            color: #00ffff;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+
+        .share-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .share-button {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+            padding: 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .share-button:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: rgba(0, 255, 255, 0.8);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .embed-section {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .embed-section h3 {
+            color: #00ffff;
+            margin-bottom: 15px;
+        }
+
+        .embed-code {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #ccc;
+            word-break: break-all;
+            margin-bottom: 10px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #ff0080;
+            font-size: 24px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .copy-button {
+            background: rgba(0, 255, 255, 0.2);
+            border: 1px solid rgba(0, 255, 255, 0.5);
+            color: #00ffff;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .copy-button:hover {
+            background: rgba(0, 255, 255, 0.3);
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            border: 2px solid transparent;
+            border-top: 2px solid #00ffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="silicon-background"></div>
+    
+    <div class="portal-viewer">
+        <div class="visualization-portal" id="portalWindow">
+            <div class="canvas-container">
+                <!-- VIB34D Engine Canvas Layers -->
+                <canvas id="background-canvas" class="engine-canvas"></canvas>
+                <canvas id="shadow-canvas" class="engine-canvas"></canvas>
+                <canvas id="content-canvas" class="engine-canvas"></canvas>
+                <canvas id="highlight-canvas" class="engine-canvas"></canvas>
+                <canvas id="accent-canvas" class="engine-canvas"></canvas>
+                
+                <!-- ACCENT TWIN VISUALIZER: Complementary/Inverse parameter visualization -->
+                <canvas id="twin-background-canvas" class="engine-canvas twin-canvas" style="opacity: 0;"></canvas>
+                <canvas id="twin-shadow-canvas" class="engine-canvas twin-canvas" style="opacity: 0;"></canvas>
+                <canvas id="twin-content-canvas" class="engine-canvas twin-canvas" style="opacity: 0;"></canvas>
+                <canvas id="twin-highlight-canvas" class="engine-canvas twin-canvas" style="opacity: 0;"></canvas>
+                <canvas id="twin-accent-canvas" class="engine-canvas twin-canvas" style="opacity: 0;"></canvas>
+                <div class="loading" id="loadingIndicator">Initializing Portal Engine...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="control-panel">
+        <button class="audio-toggle active" id="mouseToggle">Mouse Reactive</button>
+        <button class="audio-toggle active" id="tiltToggle">Device Tilt</button>
+        <button class="audio-toggle" id="audioToggle">Audio Reactive</button>
+        <button class="audio-toggle active" id="enhancedToggle">Enhanced FX</button>
+        <button class="audio-toggle" id="accentTwinToggle">Accent Twin</button>
+        <hr style="border: 1px solid rgba(0, 255, 255, 0.3); margin: 6px 0;">
+        <button class="audio-toggle" id="backToPortfolio">Back to Portfolio</button>
+        <button class="audio-toggle" id="openInEngine">Open in Engine</button>
+        <button class="audio-toggle" id="sharePortal">Share Portal</button>
+    </div>
+    
+    <div class="info-display" id="infoDisplay">
+        <h3>Portal Parameters</h3>
+        <p id="systemType">System: Loading...</p>
+        <p id="geometryInfo">Geometry: Loading...</p>
+        <p id="configInfo">Configuration: Loading...</p>
+    </div>
+
+    <script type="module">
+        // Import system-specific visualizers from VIB34D engine
+        import { IntegratedHolographicVisualizer } from './src/core/Visualizer.js';
+        import { QuantumHolographicVisualizer } from './src/quantum/QuantumVisualizer.js';
+        import { HolographicVisualizer } from './src/holograms/HolographicVisualizer.js';
+        
+        class PortalEngine {
+            constructor() {
+                this.portalWindow = document.getElementById('portalWindow');
+                this.loadingIndicator = document.getElementById('loadingIndicator');
+                
+                this.visualizers = [];
+                this.mouseX = 0.5;
+                this.mouseY = 0.5;
+                this.mouseIntensity = 0.0;
+                this.clickIntensity = 0.0;
+                
+                // Enhanced Interactivity State with 4D perspective mapping
+                this.interactivityState = {
+                    mouse: true,
+                    tilt: true,
+                    audio: false,
+                    enhanced: true,
+                    accentTwin: false
+                };
+                
+                // 4D rotation perspective base values
+                this.baseRotations = {
+                    rot4dXW: 0,
+                    rot4dYW: 0,
+                    rot4dZW: 0
+                };
+                
+                // Device orientation tracking for realistic 4D perspective
+                this.deviceOrientation = {
+                    alpha: 0,   // Z-axis rotation (compass)
+                    beta: 0,    // X-axis rotation (front-to-back tilt)  
+                    gamma: 0    // Y-axis rotation (left-to-right tilt)
+                };
+                this.audioReactive = false;
+                this.audioData = null;
+                
+                // Portal expansion state
+                this.isExpanded = false;
+                this.tiltX = 0;
+                this.tiltY = 0;
+                
+                // Parameters from URL
+                this.params = this.parseUrlParameters();
+                
+                // Store base 4D rotations from URL parameters
+                this.baseRotations.rot4dXW = this.params.rot4dXW;
+                this.baseRotations.rot4dYW = this.params.rot4dYW;
+                this.baseRotations.rot4dZW = this.params.rot4dZW;
+                
+                this.updateInfoDisplay();
+                
+                this.init();
+            }
+            
+            async init() {
+                try {
+                    await this.setupCanvases();
+                    await this.createEngineVisualizers();
+                    this.setupPortalInteractions();
+                    this.setupEventHandlers();
+                    
+                    this.loadingIndicator.style.display = 'none';
+                    this.startRenderLoop();
+                    
+                    console.log('🎨 Portal engine initialized with VIB34D visualizers');
+                } catch (error) {
+                    console.error('❌ Portal engine initialization failed:', error);
+                    this.loadingIndicator.textContent = 'Failed to initialize portal engine';
+                }
+            }
+            
+            async setupCanvases() {
+                const rect = this.portalWindow.getBoundingClientRect();
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                
+                const canvases = [
+                    'background-canvas', 'shadow-canvas', 'content-canvas', 'highlight-canvas', 'accent-canvas',
+                    'twin-background-canvas', 'twin-shadow-canvas', 'twin-content-canvas', 'twin-highlight-canvas', 'twin-accent-canvas'
+                ];
+                
+                canvases.forEach(canvasId => {
+                    const canvas = document.getElementById(canvasId);
+                    if (canvas) {
+                        canvas.width = rect.width * dpr;
+                        canvas.height = rect.height * dpr;
+                        canvas.style.width = rect.width + 'px';
+                        canvas.style.height = rect.height + 'px';
+                    }
+                });
+            }
+            
+            async createEngineVisualizers() {
+                // Create system-specific visualizers based on URL system parameter
+                console.log(`🔍 SYSTEM DEBUG: URL = ${window.location.search}`);
+                console.log(`🔍 SYSTEM DEBUG: this.params =`, this.params);
+                console.log(`🔍 Creating visualizers for system: ${this.params.system}`);
+                
+                const layers = [
+                    { id: 'background-canvas', role: 'background', reactivity: 0.5, variant: 0 },
+                    { id: 'shadow-canvas', role: 'shadow', reactivity: 0.7, variant: 1 },
+                    { id: 'content-canvas', role: 'content', reactivity: 0.9, variant: 2 },
+                    { id: 'highlight-canvas', role: 'highlight', reactivity: 1.1, variant: 3 },
+                    { id: 'accent-canvas', role: 'accent', reactivity: 1.5, variant: 4 }
+                ];
+                
+                let successfulLayers = 0;
+                
+                for (const layer of layers) {
+                    try {
+                        const canvas = document.getElementById(layer.id);
+                        if (!canvas) {
+                            console.error(`❌ Canvas not found: ${layer.id}`);
+                            continue;
+                        }
+                        
+                        console.log(`🔍 Creating ${this.params.system} visualizer for: ${layer.id}`);
+                        let visualizer;
+                        
+                        // Create system-specific visualizer
+                        switch (this.params.system) {
+                            case 'quantum':
+                                visualizer = new QuantumHolographicVisualizer(layer.id, layer.role, layer.reactivity, layer.variant);
+                                break;
+                            case 'holographic':
+                                visualizer = new HolographicVisualizer(layer.id, layer.role, layer.reactivity, layer.variant);
+                                break;
+                            case 'faceted':
+                            default:
+                                visualizer = new IntegratedHolographicVisualizer(layer.id, layer.role, layer.reactivity, layer.variant);
+                                break;
+                        }
+                        
+                        if (visualizer && visualizer.gl) {
+                            // Apply current parameters to visualizer
+                            this.applyParametersToVisualizer(visualizer);
+                            
+                            this.visualizers.push(visualizer);
+                            successfulLayers++;
+                            console.log(`✅ Created ${this.params.system} layer: ${layer.role} (${layer.id})`);
+                        } else {
+                            console.error(`❌ No WebGL context for: ${layer.id}`);
+                        }
+                    } catch (error) {
+                        console.error(`❌ Failed to create ${this.params.system} layer ${layer.id}:`, error);
+                    }
+                }
+                
+                console.log(`✅ Created ${successfulLayers}/5 ${this.params.system} engine layers`);
+            }
+            
+            applyParametersToVisualizer(visualizer) {
+                // Apply URL parameters to the visualizer using consistent parameter names
+                if (visualizer.updateParameters) {
+                    const standardParams = {
+                        geometry: this.params.geometryType,
+                        gridDensity: this.params.density,
+                        morphFactor: this.params.morph,
+                        chaos: this.params.chaos,
+                        speed: this.params.speed,
+                        hue: this.params.hue,
+                        intensity: this.params.intensity,
+                        saturation: this.params.saturation,
+                        rot4dXW: this.params.rot4dXW,
+                        rot4dYW: this.params.rot4dYW,
+                        rot4dZW: this.params.rot4dZW
+                    };
+                    
+                    console.log(`🔧 Applying parameters to ${this.params.system} visualizer:`, standardParams);
+                    visualizer.updateParameters(standardParams);
+                } else if (visualizer.setParameters) {
+                    // Alternative parameter setting method
+                    visualizer.setParameters({
+                        geometry: this.params.geometryType,
+                        gridDensity: this.params.density,
+                        morphFactor: this.params.morph,
+                        chaos: this.params.chaos,
+                        speed: this.params.speed,
+                        hue: this.params.hue,
+                        intensity: this.params.intensity,
+                        saturation: this.params.saturation
+                    });
+                } else {
+                    console.warn(`⚠️ No parameter setting method found for ${this.params.system} visualizer`);
+                }
+            }
+            
+            setupPortalInteractions() {
+                // Enhanced mouse tracking for portal expansion and tilt effects
+                this.portalWindow.addEventListener('mousemove', (e) => {
+                    const rect = this.portalWindow.getBoundingClientRect();
+                    this.mouseX = (e.clientX - rect.left) / rect.width;
+                    this.mouseY = 1 - (e.clientY - rect.top) / rect.height;
+                    
+                    // Calculate tilt based on mouse position (more dramatic when expanded)
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const maxTilt = this.isExpanded ? 25 : 10; // More tilt when expanded
+                    
+                    this.tiltX = ((e.clientX - rect.left - centerX) / centerX) * maxTilt;
+                    this.tiltY = ((e.clientY - rect.top - centerY) / centerY) * -maxTilt;
+                    
+                    // Update portal visual tilt
+                    this.updatePortalTilt();
+                    
+                    // Update CSS custom properties for RGB flash
+                    document.documentElement.style.setProperty('--mouse-x', this.mouseX * 100);
+                    document.documentElement.style.setProperty('--mouse-y', this.mouseY * 100);
+                    
+                    // Update engine mouse reactivity
+                    this.updateEngineReactivity();
+                    
+                    // Enhanced: Mouse movement affects 4D perspective like looking around
+                    if (this.interactivityState.mouse && this.interactivityState.enhanced) {
+                        this.updateMouse4DPerspective();
+                    }
+                });
+                
+                // Portal expansion on hover
+                this.portalWindow.addEventListener('mouseenter', () => {
+                    this.isExpanded = true;
+                    this.mouseIntensity = 1.0;
+                });
+                
+                this.portalWindow.addEventListener('mouseleave', () => {
+                    this.isExpanded = false;
+                    this.mouseIntensity = 0.0;
+                    this.tiltX = 0;
+                    this.tiltY = 0;
+                    this.updatePortalTilt();
+                });
+                
+                // Click effects
+                this.portalWindow.addEventListener('mousedown', () => {
+                    this.clickIntensity = 1.0;
+                });
+                
+                this.portalWindow.addEventListener('mouseup', () => {
+                    this.clickIntensity = 0.0;
+                });
+            }
+            
+            updatePortalTilt() {
+                // Portal tilt is now handled by update4DPerspective and updateMouse4DPerspective
+                // This function is kept for compatibility but delegates to the new system
+                if (this.interactivityState.mouse && this.interactivityState.enhanced) {
+                    this.updateMouse4DPerspective();
+                }
+            }
+            
+            updateEngineReactivity() {
+                // Update all visualizers with current mouse state
+                this.visualizers.forEach(visualizer => {
+                    if (visualizer.updateMouse) {
+                        visualizer.updateMouse(this.mouseX, this.mouseY, this.mouseIntensity);
+                    }
+                    if (visualizer.updateClick) {
+                        visualizer.updateClick(this.clickIntensity);
+                    }
+                });
+            }
+            
+            setupEventHandlers() {
+                // Enhanced interactivity toggles
+                document.getElementById('mouseToggle').addEventListener('click', () => {
+                    this.toggleInteractivity('mouse');
+                });
+                
+                document.getElementById('tiltToggle').addEventListener('click', () => {
+                    this.toggleInteractivity('tilt');
+                });
+                
+                document.getElementById('audioToggle').addEventListener('click', () => {
+                    this.toggleInteractivity('audio');
+                });
+                
+                document.getElementById('enhancedToggle').addEventListener('click', () => {
+                    this.toggleInteractivity('enhanced');
+                });
+                
+                document.getElementById('accentTwinToggle').addEventListener('click', () => {
+                    this.toggleInteractivity('accentTwin');
+                });
+
+                // Navigation buttons
+                document.getElementById('backToPortfolio').addEventListener('click', () => {
+                    window.location.href = 'gallery.html';
+                });
+
+                document.getElementById('openInEngine').addEventListener('click', () => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const configData = urlParams.get('config');
+                    if (configData) {
+                        // Pass the current configuration to the main engine
+                        window.location.href = `index-clean.html?config=${encodeURIComponent(configData)}`;
+                    } else {
+                        window.location.href = 'index-clean.html';
+                    }
+                });
+
+                document.getElementById('sharePortal').addEventListener('click', () => {
+                    this.showShareModal();
+                });
+                
+                // Window resize
+                window.addEventListener('resize', () => {
+                    this.setupCanvases();
+                });
+                
+                // Keyboard shortcuts
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === 'f' || e.key === 'F') {
+                        this.toggleFullscreen();
+                    }
+                });
+                
+                // Device orientation for mobile tilt
+                if (window.DeviceOrientationEvent) {
+                    window.addEventListener('deviceorientation', (e) => {
+                        if (this.interactivityState.tilt) {
+                            this.handleDeviceOrientation(e);
+                        }
+                    });
+                }
+            }
+            
+            toggleInteractivity(type) {
+                this.interactivityState[type] = !this.interactivityState[type];
+                const button = document.getElementById(`${type}Toggle`);
+                const isActive = this.interactivityState[type];
+                
+                if (isActive) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+                
+                // Handle specific interactivity types
+                switch (type) {
+                    case 'audio':
+                        if (isActive) {
+                            button.textContent = 'Audio ON';
+                            this.initAudio();
+                        } else {
+                            button.textContent = 'Audio OFF';
+                            this.audioReactive = false;
+                        }
+                        break;
+                        
+                    case 'mouse':
+                        // Mouse reactivity affects portal tilt and visualizer interaction
+                        button.textContent = isActive ? 'Mouse ON' : 'Mouse OFF';
+                        break;
+                        
+                    case 'tilt':
+                        // Device tilt affects 4D rotation perspective
+                        button.textContent = isActive ? 'Tilt ON' : 'Tilt OFF';
+                        if (!isActive) {
+                            // Reset to base rotations when tilt is disabled
+                            this.update4DPerspective(0, 0, 0);
+                        }
+                        break;
+                        
+                    case 'enhanced':
+                        // Enhanced effects add extra visual flair
+                        button.textContent = isActive ? 'Enhanced ON' : 'Enhanced OFF';
+                        break;
+                        
+                    case 'accentTwin':
+                        // Accent twin visualizer with complementary parameters
+                        button.textContent = isActive ? 'Accent Twin ON' : 'Accent Twin OFF';
+                        this.toggleAccentTwin(isActive);
+                        break;
+                }
+                
+                console.log(`🎮 ${type} interactivity: ${isActive ? 'ON' : 'OFF'}`);
+            }
+            
+            async initAudio() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const audioContext = new AudioContext();
+                    const source = audioContext.createMediaStreamSource(stream);
+                    const analyser = audioContext.createAnalyser();
+                    
+                    analyser.fftSize = 256;
+                    source.connect(analyser);
+                    
+                    this.audioData = new Uint8Array(analyser.frequencyBinCount);
+                    this.audioAnalyser = analyser;
+                    
+                    console.log('Audio reactive mode enabled');
+                } catch (error) {
+                    console.warn('Audio access denied:', error);
+                    this.audioReactive = false;
+                    document.getElementById('audioToggle').classList.remove('active');
+                }
+            }
+            
+            handleDeviceOrientation(event) {
+                // Update device orientation tracking
+                this.deviceOrientation.alpha = event.alpha || 0;  // Z-axis (compass)
+                this.deviceOrientation.beta = event.beta || 0;    // X-axis (front-back tilt)
+                this.deviceOrientation.gamma = event.gamma || 0;  // Y-axis (left-right tilt)
+                
+                // Map device orientation to 4D perspective changes
+                this.update4DPerspective(
+                    this.deviceOrientation.alpha,
+                    this.deviceOrientation.beta,
+                    this.deviceOrientation.gamma
+                );
+            }
+            
+            update4DPerspective(alpha, beta, gamma) {
+                if (!this.interactivityState.tilt) return;
+                
+                // 🚀 DRAMATIC 4D PERSPECTIVE TRANSFORMATION SYSTEM
+                // Extended range for more dramatic tilting effects
+                const betaNorm = Math.max(-120, Math.min(120, beta));   // Extended range for front-back tilt
+                const gammaNorm = Math.max(-120, Math.min(120, gamma)); // Extended range for left-right tilt
+                const alphaNorm = ((alpha % 360) + 360) % 360;
+                
+                // Calculate tilt intensity (0-2.67 for dramatic scaling)
+                const tiltIntensity = Math.sqrt(betaNorm*betaNorm + gammaNorm*gammaNorm) / 90;
+                const extremeTilt = tiltIntensity > 1.0; // Detect extreme tilts
+                
+                // 🎯 DRAMATIC PARALLAX BACKGROUND: Move opposite to create deep perspective illusion
+                const parallaxMultiplier = extremeTilt ? 12 : 8; // More dramatic during extreme tilts
+                const bgOffsetX = -gammaNorm * parallaxMultiplier;    // Dramatically increased horizontal parallax
+                const bgOffsetY = -betaNorm * (parallaxMultiplier * 0.75); // Dramatically increased vertical parallax
+                const bgScale = 1.2 + tiltIntensity * 0.15; // Dynamic scaling based on tilt
+                const bgRotation = alphaNorm * 0.3; // Background rotates with compass
+                const bgBlur = extremeTilt ? tiltIntensity * 2 : 0; // Blur during extreme tilts
+                
+                // Apply dramatic background transforms
+                document.documentElement.style.setProperty('--bg-offset-x', `${bgOffsetX}px`);
+                document.documentElement.style.setProperty('--bg-offset-y', `${bgOffsetY}px`);
+                document.documentElement.style.setProperty('--bg-scale', bgScale);
+                document.documentElement.style.setProperty('--bg-rotation', `${bgRotation}deg`);
+                document.documentElement.style.setProperty('--bg-blur', `${bgBlur}px`);
+                
+                // DRAMATIC COUNTER-ROTATION: Object stays fixed while world moves dramatically
+                const counterMultiplier = extremeTilt ? 1.2 : 0.8; // More dramatic counter-rotation during extreme tilts
+                const counterRotateX = -betaNorm * counterMultiplier;   // Much stronger counter front-back tilt
+                const counterRotateY = -gammaNorm * counterMultiplier;  // Much stronger counter left-right tilt
+                const counterRotateZ = -alphaNorm * 0.4;                // Enhanced compass counter-rotation
+                const dynamicPerspective = 800 + tiltIntensity * 400;   // Dynamic perspective based on tilt
+                const portalScale = (this.isExpanded ? 1.08 : 1.0) + (extremeTilt ? tiltIntensity * 0.1 : 0);
+                const portalTranslateZ = (this.isExpanded ? 30 : 0) + (extremeTilt ? tiltIntensity * 20 : 0);
+                
+                // Apply dramatic counter-rotation to portal window
+                this.portalWindow.style.transform = `
+                    perspective(${dynamicPerspective}px)
+                    rotateX(${counterRotateX}deg)
+                    rotateY(${counterRotateY}deg)
+                    rotateZ(${counterRotateZ}deg)
+                    scale(${portalScale})
+                    translateZ(${portalTranslateZ}px)
+                `;
+                
+                // 🌐 DRAMATIC 4D TRANSFORMATIONS: Natural but transformative 4D effects
+                const dramatic4DScale = extremeTilt ? 0.8 : 0.5; // 8x more dramatic than before!
+                const transformativeScale = tiltIntensity * 0.2;  // Additional transformative scaling
+                
+                const perspective4D = {
+                    // DRAMATICALLY enhanced 4D rotations
+                    rot4dXW: this.baseRotations.rot4dXW + (betaNorm * Math.PI / 180 * dramatic4DScale),
+                    rot4dYW: this.baseRotations.rot4dYW + (gammaNorm * Math.PI / 180 * dramatic4DScale),
+                    rot4dZW: this.baseRotations.rot4dZW + (alphaNorm * Math.PI / 180 * dramatic4DScale * 0.5),
+                    
+                    // TRANSFORMATIVE morphing based on tilt intensity
+                    morphFactor: (this.params.morph || 1) + tiltIntensity * 0.4 + transformativeScale,
+                    
+                    // DRAMATIC intensity changes that make tilting feel alive
+                    intensity: (this.params.intensity || 0.8) + tiltIntensity * 0.25 + (extremeTilt ? 0.2 : 0),
+                    
+                    // ORGANIC chaos increases with extreme tilts
+                    chaos: (this.params.chaos || 0.2) + Math.pow(tiltIntensity, 2) * 0.15,
+                    
+                    // DYNAMIC grid density shifts create dramatic depth perception
+                    gridDensity: (this.params.density || 15) * (1 + tiltIntensity * 0.3),
+                    
+                    // TRANSFORMATIVE color shifts for dimensional feel
+                    hue: (this.params.hue || 200) + (alphaNorm - 180) * 0.8 + (extremeTilt ? Math.sin(Date.now() * 0.005) * 20 : 0),
+                    saturation: (this.params.saturation || 0.8) + tiltIntensity * 0.15 + (extremeTilt ? 0.1 : 0)
+                };
+                
+                // Apply dramatic 4D transformations to visualizers
+                this.visualizers.forEach(visualizer => {
+                    if (visualizer.updateParameters) {
+                        visualizer.updateParameters(perspective4D);
+                    }
+                });
+                
+                // 🌟 DRAMATIC VISUAL FEEDBACK EFFECTS
+                document.documentElement.style.setProperty('--tilt-intensity', tiltIntensity);
+                
+                // Dramatic glow effects during extreme tilts
+                if (extremeTilt) {
+                    const glowIntensity = (tiltIntensity - 1) * 3;
+                    const pulseSpeed = Math.max(0.5, 2 - tiltIntensity * 0.5);
+                    document.documentElement.style.setProperty('--extreme-glow', glowIntensity);
+                    document.documentElement.style.setProperty('--pulse-speed', `${pulseSpeed}s`);
+                    
+                    // Add dramatic box-shadow to portal during extreme tilts
+                    this.portalWindow.style.boxShadow = `
+                        0 0 ${glowIntensity * 20}px rgba(0, 255, 255, ${glowIntensity * 0.3}),
+                        0 0 ${glowIntensity * 40}px rgba(255, 0, 255, ${glowIntensity * 0.2}),
+                        inset 0 0 ${glowIntensity * 10}px rgba(255, 255, 255, ${glowIntensity * 0.1})
+                    `;
+                } else {
+                    document.documentElement.style.setProperty('--extreme-glow', 0);
+                    this.portalWindow.style.boxShadow = '';
+                }
+                
+                // IMMERSIVE AUDIO FEEDBACK for dramatic tilts
+                if (extremeTilt && this.interactivityState.audio) {
+                    const frequency = 150 + tiltIntensity * 200;
+                    const duration = 30 + tiltIntensity * 20;
+                    const volume = Math.min(0.15, tiltIntensity * 0.08);
+                    this.playMicroTone(frequency, duration, volume);
+                }
+                
+                // ENHANCED HAPTIC FEEDBACK for mobile
+                if (extremeTilt && 'vibrate' in navigator) {
+                    const vibrationPattern = Math.floor(tiltIntensity * 50);
+                    navigator.vibrate(vibrationPattern);
+                }
+                
+                console.log(`🌐 DRAMATIC HOLOGRAPHIC WINDOW: 
+                    Tilt: ${tiltIntensity.toFixed(2)} ${extremeTilt ? '(EXTREME)' : ''}
+                    BG: (${bgOffsetX.toFixed(1)}, ${bgOffsetY.toFixed(1)}) Scale: ${bgScale.toFixed(2)}
+                    Counter: (${counterRotateX.toFixed(1)}°, ${counterRotateY.toFixed(1)}°, ${counterRotateZ.toFixed(1)}°)
+                    4D: XW:${perspective4D.rot4dXW.toFixed(3)} YW:${perspective4D.rot4dYW.toFixed(3)} ZW:${perspective4D.rot4dZW.toFixed(3)}
+                    Transforms: morph:${perspective4D.morphFactor.toFixed(2)} intensity:${perspective4D.intensity.toFixed(2)}`);
+            }
+            
+            updateMouse4DPerspective() {
+                // Map mouse position to viewing angle (like moving your head)
+                const mouseOffsetX = (this.mouseX - 0.5) * 2; // -1 to 1
+                const mouseOffsetY = (this.mouseY - 0.5) * 2; // -1 to 1
+                
+                // 🎯 PARALLAX BACKGROUND: Mouse movement creates depth
+                const bgMouseX = -mouseOffsetX * 30;  // Opposite direction for parallax
+                const bgMouseY = -mouseOffsetY * 20;  // Less vertical movement
+                
+                // Apply mouse parallax (combines with tilt parallax if active)
+                const currentBgX = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bg-offset-x')) || 0;
+                const currentBgY = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bg-offset-y')) || 0;
+                
+                if (!this.interactivityState.tilt) {
+                    // If tilt is off, use only mouse parallax
+                    document.documentElement.style.setProperty('--bg-offset-x', `${bgMouseX}px`);
+                    document.documentElement.style.setProperty('--bg-offset-y', `${bgMouseY}px`);
+                }
+                
+                // COUNTER-ROTATION: Keep object in "world space"
+                const mouseCounterX = -mouseOffsetY * 15;  // Vertical mouse -> X rotation
+                const mouseCounterY = -mouseOffsetX * 15;  // Horizontal mouse -> Y rotation
+                
+                // Update portal transform with mouse counter-rotation
+                const existingScale = this.isExpanded ? 1.08 : 1.0;
+                const existingZ = this.isExpanded ? 30 : 0;
+                
+                // Combine mouse and tilt if both active
+                let totalRotX = mouseCounterX;
+                let totalRotY = mouseCounterY;
+                
+                if (this.interactivityState.tilt) {
+                    const betaNorm = Math.max(-90, Math.min(90, this.deviceOrientation.beta));
+                    const gammaNorm = Math.max(-90, Math.min(90, this.deviceOrientation.gamma));
+                    totalRotX += -betaNorm * 0.3;
+                    totalRotY += -gammaNorm * 0.3;
+                }
+                
+                this.portalWindow.style.transform = `
+                    perspective(1000px)
+                    rotateX(${totalRotX}deg)
+                    rotateY(${totalRotY}deg)
+                    scale(${existingScale})
+                    translateZ(${existingZ}px)
+                `;
+                
+                // 🌐 SUBTLE 4D PERSPECTIVE: Mouse creates different viewing angles
+                const mouse4DScale = 0.15; // Very subtle 4D changes
+                
+                const mouse4DPerspective = {
+                    // Mouse movement subtly changes which 4D slice we see
+                    rot4dXW: this.baseRotations.rot4dXW + (mouseOffsetY * mouse4DScale),
+                    rot4dYW: this.baseRotations.rot4dYW + (mouseOffsetX * mouse4DScale),
+                    rot4dZW: this.baseRotations.rot4dZW,
+                    
+                    // Slight morph based on distance from center (like focal depth)
+                    morphFactor: (this.params.morph || 1) + 
+                               (Math.sqrt(mouseOffsetX*mouseOffsetX + mouseOffsetY*mouseOffsetY) * 0.05)
+                };
+                
+                // If device tilt is active, combine the effects
+                if (this.interactivityState.tilt) {
+                    const betaNorm = Math.max(-90, Math.min(90, this.deviceOrientation.beta));
+                    const gammaNorm = Math.max(-90, Math.min(90, this.deviceOrientation.gamma));
+                    const alpha = this.deviceOrientation.alpha;
+                    
+                    mouse4DPerspective.rot4dXW += (betaNorm * Math.PI / 180 * 0.1);
+                    mouse4DPerspective.rot4dYW += (gammaNorm * Math.PI / 180 * 0.1);
+                    mouse4DPerspective.rot4dZW += (alpha * Math.PI / 180 * 0.05);
+                }
+                
+                // Apply subtle 4D transformations
+                this.visualizers.forEach(visualizer => {
+                    if (visualizer.updateParameters) {
+                        visualizer.updateParameters(mouse4DPerspective);
+                    }
+                });
+            }
+            
+            toggleFullscreen() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+            
+            showShareModal() {
+                // Create and show the share modal
+                const modal = document.createElement('div');
+                modal.className = 'share-modal';
+                modal.innerHTML = `
+                    <div class="share-modal-content">
+                        <button class="close-modal" onclick="this.parentElement.parentElement.remove()">&times;</button>
+                        <h2>🚀 Share VIB34D Portal</h2>
+                        
+                        <div class="share-options">
+                            <button class="share-button" onclick="window.portalEngine.shareToTwitter()">
+                                🐦 Twitter
+                            </button>
+                            <button class="share-button" onclick="window.portalEngine.shareToFacebook()">
+                                📘 Facebook
+                            </button>
+                            <button class="share-button" onclick="window.portalEngine.shareToReddit()">
+                                📧 Reddit
+                            </button>
+                            <button class="share-button" onclick="window.portalEngine.copyShareLink()">
+                                🔗 Copy Link
+                            </button>
+                        </div>
+                        
+                        <div class="embed-section">
+                            <h3>📋 Embed Code (iframe)</h3>
+                            <div class="embed-code" id="embedCode">${this.generateEmbedCode()}</div>
+                            <button class="copy-button" onclick="window.portalEngine.copyEmbedCode()">Copy Embed Code</button>
+                            
+                            <h3 style="margin-top: 20px;">🎯 Direct Link</h3>
+                            <div class="embed-code" id="directLink">${window.location.href}</div>
+                            <button class="copy-button" onclick="window.portalEngine.copyDirectLink()">Copy Link</button>
+                            
+                            <h3 style="margin-top: 20px;">🚀 Open in VIB34D Engine</h3>
+                            <div class="embed-code" id="engineLink">${this.generateEngineLink()}</div>
+                            <button class="copy-button" onclick="window.portalEngine.copyEngineLink()">Copy Engine Link</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Close modal when clicking outside
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
+                });
+            }
+            
+            generateEmbedCode() {
+                const width = 800;
+                const height = 600;
+                return `<iframe src="${window.location.href}" width="${width}" height="${height}" frameborder="0" allowfullscreen style="border-radius: 15px; border: 2px solid rgba(0, 255, 255, 0.3);"></iframe>`;
+            }
+            
+            generateEngineLink() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const configData = urlParams.get('config');
+                const baseURL = `${window.location.origin}${window.location.pathname.replace('viewer.html', 'index-clean.html')}`;
+                return configData ? `${baseURL}?config=${encodeURIComponent(configData)}` : baseURL;
+            }
+            
+            shareToTwitter() {
+                const text = `🚀 Check out this incredible VIB34D holographic visualization! #VIB34D #4D #Holographic #WebGL`;
+                const url = window.location.href;
+                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+            }
+            
+            shareToFacebook() {
+                const url = window.location.href;
+                window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+            }
+            
+            shareToReddit() {
+                const title = 'Amazing VIB34D 4D Holographic Visualization';
+                const url = window.location.href;
+                window.open(`https://reddit.com/submit?title=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`, '_blank');
+            }
+            
+            copyShareLink() {
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    this.showCopyFeedback('Share link copied!');
+                });
+            }
+            
+            copyEmbedCode() {
+                const embedCode = this.generateEmbedCode();
+                navigator.clipboard.writeText(embedCode).then(() => {
+                    this.showCopyFeedback('Embed code copied!');
+                });
+            }
+            
+            copyDirectLink() {
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    this.showCopyFeedback('Direct link copied!');
+                });
+            }
+            
+            copyEngineLink() {
+                const engineLink = this.generateEngineLink();
+                navigator.clipboard.writeText(engineLink).then(() => {
+                    this.showCopyFeedback('Engine link copied!');
+                });
+            }
+            
+            showCopyFeedback(message) {
+                // Create temporary feedback element
+                const feedback = document.createElement('div');
+                feedback.textContent = message;
+                feedback.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(0, 255, 255, 0.9);
+                    color: #000;
+                    padding: 10px 20px;
+                    border-radius: 20px;
+                    font-family: 'Orbitron', monospace;
+                    font-weight: bold;
+                    z-index: 20000;
+                    animation: fadeInOut 2s ease-in-out forwards;
+                `;
+                
+                document.body.appendChild(feedback);
+                
+                // Remove after animation
+                setTimeout(() => {
+                    feedback.remove();
+                }, 2000);
+                
+                // Add CSS animation if not already present
+                if (!document.getElementById('copyFeedbackStyle')) {
+                    const style = document.createElement('style');
+                    style.id = 'copyFeedbackStyle';
+                    style.textContent = `
+                        @keyframes fadeInOut {
+                            0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                            20%, 80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+                            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }
+            
+            render() {
+                // Get audio level if available
+                let audioLevel = 0;
+                if (this.audioReactive && this.audioAnalyser && this.audioData) {
+                    this.audioAnalyser.getByteFrequencyData(this.audioData);
+                    audioLevel = Array.from(this.audioData).reduce((a, b) => a + b, 0) / (this.audioData.length * 255);
+                }
+                
+                // Render all VIB34D engine layers
+                this.visualizers.forEach(visualizer => {
+                    if (visualizer.render) {
+                        visualizer.render();
+                    }
+                });
+            }
+            
+            startRenderLoop() {
+                const renderFrame = () => {
+                    this.render();
+                    requestAnimationFrame(renderFrame);
+                };
+                renderFrame();
+            }
+            
+            parseUrlParameters() {
+                const params = new URLSearchParams(window.location.search);
+                
+                // Enhanced parameter parsing with better fallbacks and normalized names
+                const parsedParams = {
+                    system: params.get('system') || 'faceted', // Default to faceted, not quantum
+                    name: params.get('name') || 'Portal View',
+                    
+                    // Support both normalized (saved) and original parameter names
+                    geometryType: parseInt(params.get('geometryType') || params.get('geometry')) || 0,
+                    density: parseFloat(params.get('density') || params.get('gridDensity')) || 15,
+                    morph: parseFloat(params.get('morph') || params.get('morphFactor')) || 1,
+                    speed: parseFloat(params.get('speed')) || 1,
+                    chaos: parseFloat(params.get('chaos')) || 0.2,
+                    hue: parseFloat(params.get('hue')) || 200,
+                    saturation: parseFloat(params.get('saturation')) || 0.8,
+                    intensity: parseFloat(params.get('intensity')) || 0.8,
+                    
+                    // 4D rotation parameters
+                    rot4dXW: parseFloat(params.get('rot4dXW')) || 0,
+                    rot4dYW: parseFloat(params.get('rot4dYW')) || 0,
+                    rot4dZW: parseFloat(params.get('rot4dZW')) || 0,
+                    dimension: parseFloat(params.get('dimension')) || 3.5
+                };
+                
+                console.log('🔍 Parsed URL parameters:', parsedParams);
+                return parsedParams;
+            }
+            
+            updateInfoDisplay() {
+                const geometryNames = ['Tetrahedron', 'Hypercube', 'Sphere', 'Torus', 'Klein Bottle', 'Fractal', 'Wave', 'Crystal'];
+                
+                document.getElementById('systemType').textContent = `System: ${this.params.system.toUpperCase()}`;
+                document.getElementById('geometryInfo').textContent = `Geometry: ${geometryNames[this.params.geometryType] || 'Unknown'}`;
+                document.getElementById('configInfo').textContent = `Config: ${this.params.name}`;
+            }
+            
+            // ACCENT TWIN SYSTEM: Toggle complementary/inverse visualization
+            toggleAccentTwin(isActive) {
+                const twinCanvases = document.querySelectorAll('.twin-canvas');
+                
+                if (isActive) {
+                    // Enable twin canvases with smooth fade-in
+                    twinCanvases.forEach(canvas => {
+                        canvas.classList.add('active');
+                    });
+                    
+                    // Initialize twin visualizers if needed
+                    this.initializeTwinVisualizers();
+                    
+                    console.log('🎭 Accent Twin Visualizer: ENABLED');
+                } else {
+                    // Disable twin canvases with smooth fade-out
+                    twinCanvases.forEach(canvas => {
+                        canvas.classList.remove('active');
+                    });
+                    
+                    console.log('🎭 Accent Twin Visualizer: DISABLED');
+                }
+            }
+            
+            // Initialize twin visualizers with complementary parameters
+            initializeTwinVisualizers() {
+                console.log('🎭 Initializing accent twin visualizers...');
+                
+                // Create complementary parameters by inverting/offsetting key values
+                const twinParams = {
+                    ...this.params,
+                    hue: (this.params.hue + 180) % 360, // Complementary hue
+                    intensity: Math.max(0.1, 1 - this.params.intensity), // Inverse intensity with minimum
+                    morph: Math.max(0.1, 2 - this.params.morph), // Inverse morph using correct property
+                    chaos: Math.max(0.05, 1 - this.params.chaos), // Inverse chaos with minimum
+                    rot4dXW: -this.params.rot4dXW, // Opposite 4D rotation
+                    rot4dYW: -this.params.rot4dYW,
+                    rot4dZW: -this.params.rot4dZW
+                };
+                
+                // Apply twin parameters to twin canvases
+                // Note: This would need integration with the visualizer system
+                console.log('🎨 Twin parameters calculated:', twinParams);
+            }
+        }
+        
+        // Initialize portal engine when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.portalEngine = new PortalEngine();
+        });
+    </script>
+</body>
+</html>
