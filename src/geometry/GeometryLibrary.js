@@ -1,6 +1,6 @@
 /**
  * VIB3 Geometry Library
- * 8 geometric types with 4D polytopal mathematics integration
+ * 10 geometric types with 4D polytopal mathematics integration
  * WebGL 1.0 compatible shaders only
  */
 
@@ -8,13 +8,15 @@ export class GeometryLibrary {
     static getGeometryNames() {
         return [
             'TETRAHEDRON',
-            'HYPERCUBE', 
+            'HYPERCUBE',
             'SPHERE',
             'TORUS',
             'KLEIN BOTTLE',
             'FRACTAL',
             'WAVE',
-            'CRYSTAL'
+            'CRYSTAL',
+            'HYPERTETRAHEDRON',
+            'HYPERSPHERE'
         ];
     }
     

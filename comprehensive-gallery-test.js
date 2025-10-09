@@ -85,7 +85,7 @@ class GalleryTestFramework {
         
         this.test('Geometry buttons exist', () => {
             const geomButtons = document.querySelectorAll('.geom-btn');
-            return geomButtons.length >= 8; // Should have 8 geometry types
+            return geomButtons.length >= 10; // Should have 10 geometry types
         });
     }
     

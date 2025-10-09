@@ -26,8 +26,8 @@ export class FacetedSystem {
         // Geometry configuration exactly like index.html
         this.geometries = [
             'Tetra', 'Cube', 'Sphere',
-            'Torus', 'Klein', 'Fractal', 
-            'Wave', 'Crystal'
+            'Torus', 'Klein', 'Fractal',
+            'Wave', 'Crystal', 'Hypertetra', 'Hypersphere'
         ];
         
         console.log('🔷 FacetedSystem: Initialized');

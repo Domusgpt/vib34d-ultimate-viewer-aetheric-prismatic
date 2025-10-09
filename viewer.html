@@ -1333,7 +1333,7 @@
             }
             
             updateInfoDisplay() {
-                const geometryNames = ['Tetrahedron', 'Hypercube', 'Sphere', 'Torus', 'Klein Bottle', 'Fractal', 'Wave', 'Crystal'];
+                const geometryNames = ['Tetrahedron', 'Hypercube', 'Sphere', 'Torus', 'Klein Bottle', 'Fractal', 'Wave', 'Crystal', 'Hypertetrahedron', 'Hypersphere'];
                 
                 document.getElementById('systemType').textContent = `System: ${this.params.system.toUpperCase()}`;
                 document.getElementById('geometryInfo').textContent = `Geometry: ${geometryNames[this.params.geometryType] || 'Unknown'}`;
