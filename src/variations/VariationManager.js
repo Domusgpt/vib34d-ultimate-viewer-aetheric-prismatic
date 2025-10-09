@@ -1,6 +1,6 @@
 /**
  * VIB34D Variation Management System
- * Manages 100 total variations: 30 default + 70 custom
+ * Manages 100 total variations: 38 default + 62 custom
  */
 
 import { GeometryLibrary } from '../geometry/GeometryLibrary.js';
@@ -9,11 +9,11 @@ export class VariationManager {
     constructor(engine) {
         this.engine = engine;
         
-        // Default variation names (30 total)
+        // Default variation names (38 total)
         this.variationNames = [
             // Tetrahedron Lattice (0-3)
             'TETRAHEDRON LATTICE 1', 'TETRAHEDRON LATTICE 2', 'TETRAHEDRON LATTICE 3', 'TETRAHEDRON LATTICE 4',
-            
+
             // Hypercube Lattice (4-7)
             'HYPERCUBE LATTICE 1', 'HYPERCUBE LATTICE 2', 'HYPERCUBE LATTICE 3', 'HYPERCUBE LATTICE 4',
             
@@ -31,13 +31,19 @@ export class VariationManager {
             
             // Wave Lattice (23-25)
             'WAVE LATTICE 1', 'WAVE LATTICE 2', 'WAVE LATTICE 3',
-            
+
             // Crystal Lattice (26-29)
-            'CRYSTAL LATTICE 1', 'CRYSTAL LATTICE 2', 'CRYSTAL LATTICE 3', 'CRYSTAL LATTICE 4'
+            'CRYSTAL LATTICE 1', 'CRYSTAL LATTICE 2', 'CRYSTAL LATTICE 3', 'CRYSTAL LATTICE 4',
+
+            // Hypertetrahedron Lattice (30-33)
+            'HYPERTETRAHEDRON LATTICE 1', 'HYPERTETRAHEDRON LATTICE 2', 'HYPERTETRAHEDRON LATTICE 3', 'HYPERTETRAHEDRON LATTICE 4',
+
+            // Hypersphere Lattice (34-37)
+            'HYPERSPHERE LATTICE 1', 'HYPERSPHERE LATTICE 2', 'HYPERSPHERE LATTICE 3', 'HYPERSPHERE LATTICE 4'
         ];
-        
-        // Custom variations storage (70 slots)
-        this.customVariations = new Array(70).fill(null);
+
+        // Custom variations storage (62 slots)
+        this.customVariations = new Array(62).fill(null);
         
         // Total variation count
         this.totalVariations = 100;
@@ -47,10 +53,11 @@ export class VariationManager {
      * Get variation name for display
      */
     getVariationName(index) {
-        if (index < 30) {
+        const defaultCount = this.variationNames.length;
+        if (index < defaultCount) {
             return this.variationNames[index];
         } else {
-            const customIndex = index - 30;
+            const customIndex = index - defaultCount;
             const customVar = this.customVariations[customIndex];
             return customVar ? customVar.name : `CUSTOM ${customIndex + 1}`;
         }
@@ -60,18 +67,19 @@ export class VariationManager {
      * Generate default variation parameters
      */
     generateDefaultVariation(index) {
-        if (index >= 30) return null;
-        
+        const defaultCount = this.variationNames.length;
+        if (index >= defaultCount) return null;
+
         const geometryType = Math.floor(index / 4);
-        const level = index % 4;
-        
+        let level = index % 4;
+
         // Special handling for reduced geometry sets
         let adjustedGeometryType = geometryType;
         if (geometryType === 5 && level > 2) { // Fractal only has 3 levels
             adjustedGeometryType = 5;
             level = 2;
         }
-        if (geometryType === 6 && level > 2) { // Wave only has 3 levels  
+        if (geometryType === 6 && level > 2) { // Wave only has 3 levels
             adjustedGeometryType = 6;
             level = 2;
         }
@@ -99,12 +107,13 @@ export class VariationManager {
         
         let params;
         
-        if (index < 30) {
+        const defaultCount = this.variationNames.length;
+        if (index < defaultCount) {
             // Default variation
             params = this.generateDefaultVariation(index);
         } else {
             // Custom variation
-            const customIndex = index - 30;
+            const customIndex = index - defaultCount;
             const customVar = this.customVariations[customIndex];
             
             if (customVar) {

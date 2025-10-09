@@ -213,7 +213,7 @@ saveToLocalStorage(variation) {
     "system": "faceted",               // Current active system
     "name": "FACETED-123000",         // Auto-generated name
     "parameters": {
-        "geometry": 2,                 // Geometry type (0-7)
+        "geometry": 2,                 // Geometry type (0-9)
         "rot4dXW": 0.5,               // 4D rotation parameters
         "rot4dYW": -1.2,
         "rot4dZW": 2.1,
@@ -238,7 +238,7 @@ saveToLocalStorage(variation) {
 ```javascript
 {
     "name": "Base Multi-System Variations",
-    "description": "30 default variations across 8 geometric forms and 4 systems",
+    "description": "38 default variations across 10 geometric forms and 4 systems",
     "version": "1.0",
     "type": "holographic-collection",      // Required identifier
     "profileName": "Active Holographic Systems",
@@ -449,7 +449,7 @@ function loadGalleryParameters(data) {
 - **`vib34d-load-params`**: Temporary storage for parameter loading between pages
 
 ### **File-Based Collections**
-- **`collections/base-variations.json`**: 30 preset variations across all 4 systems and 8 geometries
+- **`collections/base-variations.json`**: 38 preset variations across all 4 systems and 10 geometries
 - **Future user files**: Any JSON with `"type": "holographic-collection"` in collections/ folder
 
 ### **Daily Collection Organization**

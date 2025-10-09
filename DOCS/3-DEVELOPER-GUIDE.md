@@ -142,7 +142,7 @@ const paramManager = new ParameterManager();
 
 // Core parameters
 const defaultParams = {
-    geometry: 0,            // 0-7 geometry types
+    geometry: 0,            // 0-9 geometry types
     rot4dXW: 0.0,          // -6.28 to 6.28 radians
     rot4dYW: 0.0,          // -6.28 to 6.28 radians
     rot4dZW: 0.0,          // -6.28 to 6.28 radians
@@ -227,7 +227,7 @@ VIB34D exposes several global functions for UI integration:
 ```javascript
 // System Control
 switchSystem('faceted')                 // Switch visualization system
-selectGeometry(3)                       // Set geometry type (0-7)
+selectGeometry(3)                       // Set geometry type (0-9)
 updateParameter('hue', 240)             // Update any parameter
 randomizeAll()                          // Randomize all parameters
 resetAll()                              // Reset to defaults
