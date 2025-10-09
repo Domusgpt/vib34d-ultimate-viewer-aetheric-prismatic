@@ -83,7 +83,7 @@ Visit the live system at: https://domusgpt.github.io/vib34d-ultimate-viewer/
 ## 🎛️ Master the 11 Core Parameters
 
 ### Geometric Parameters
-- **Geometry (0-7)**: Choose your base shape
+- **Geometry (0-9)**: Choose your base shape
   - 0: TETRAHEDRON (4 triangular faces)
   - 1: HYPERCUBE (4D cube)
   - 2: SPHERE (smooth curves)

@@ -9,7 +9,8 @@ export class HolographicCardGeneratorMultiLayer {
         
         const geometryNames = {
             0: 'tetrahedron', 1: 'hypercube', 2: 'sphere', 3: 'torus',
-            4: 'klein', 5: 'fractal', 6: 'wave', 7: 'crystal'
+            4: 'klein', 5: 'fractal', 6: 'wave', 7: 'crystal',
+            8: 'hypertetrahedron', 9: 'hypersphere'
         };
         
         const geometryName = geometryNames[params.geometry] || 'hypercube';
