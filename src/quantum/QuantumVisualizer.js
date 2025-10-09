@@ -376,18 +376,56 @@ float waveLattice(vec3 p, float gridSize) {
 
 float crystalLattice(vec3 p, float gridSize) {
     vec3 cell = fract(p * gridSize) - 0.5;
-    
+
     // Octahedral crystal structure
     float crystal = max(max(abs(cell.x) + abs(cell.y), abs(cell.y) + abs(cell.z)), abs(cell.x) + abs(cell.z));
     crystal = 1.0 - smoothstep(0.3, 0.4, crystal);
-    
+
     // Add crystalline faces
     float faces = 0.0;
     faces = max(faces, 1.0 - smoothstep(0.0, 0.02, abs(abs(cell.x) - 0.35)));
     faces = max(faces, 1.0 - smoothstep(0.0, 0.02, abs(abs(cell.y) - 0.35)));
     faces = max(faces, 1.0 - smoothstep(0.0, 0.02, abs(abs(cell.z) - 0.35)));
-    
+
     return max(crystal, faces * 0.5);
+}
+
+float hypertetrahedronLattice4D(vec4 p, float gridSize) {
+    vec4 cell = fract(p * gridSize) - 0.5;
+    vec4 dir0 = normalize(vec4(1.0, 1.0, 1.0, -1.0));
+    vec4 dir1 = normalize(vec4(1.0, -1.0, -1.0, -1.0));
+    vec4 dir2 = normalize(vec4(-1.0, 1.0, -1.0, -1.0));
+    vec4 dir3 = normalize(vec4(-1.0, -1.0, 1.0, -1.0));
+    vec4 dir4 = normalize(vec4(0.0, 0.0, 0.0, 2.0));
+
+    float d0 = abs(dot(cell, dir0));
+    float d1 = abs(dot(cell, dir1));
+    float d2 = abs(dot(cell, dir2));
+    float d3 = abs(dot(cell, dir3));
+    float d4 = abs(dot(cell, dir4));
+
+    float facet = min(min(min(d0, d1), min(d2, d3)), d4);
+    float shells = abs(fract(facet * 6.0) - 0.5) * 2.0;
+    float apex = abs(sin(d4 * 12.0));
+    float radial = abs(sin(length(cell.xyz) * 10.0 + cell.w * 8.0));
+
+    return min(shells, min(apex, radial));
+}
+
+float hypersphereLattice4D(vec4 p, float gridSize) {
+    float radius4 = length(p);
+    float radius3 = length(p.xyz);
+    float shells = abs(fract(radius4 * gridSize) - 0.5) * 2.0;
+
+    float chi = atan(p.w, radius3 + 1e-5);
+    float theta = atan(length(p.xy), p.z + 1e-5);
+    float phi = atan(p.y, p.x + 1e-5);
+
+    float chiBands = abs(sin(chi * (gridSize * 8.0 + 2.0)));
+    float thetaBands = abs(sin(theta * (gridSize * 6.0 + 2.5)));
+    float phiBands = abs(sin(phi * (gridSize * 4.0 + 3.0)));
+
+    return min(shells, min(chiBands, min(thetaBands, phiBands)));
 }
 
 // Enhanced geometry function with holographic effects
@@ -395,7 +433,7 @@ float geometryFunction(vec4 p) {
     int geomType = int(u_geometry);
     vec3 p3d = project4Dto3D(p);
     float gridSize = u_gridDensity * 0.08;
-    
+
     if (geomType == 0) {
         return tetrahedronLattice(p3d, gridSize) * u_morphFactor;
     }
@@ -419,6 +457,12 @@ float geometryFunction(vec4 p) {
     }
     else if (geomType == 7) {
         return crystalLattice(p3d, gridSize) * u_morphFactor;
+    }
+    else if (geomType == 8) {
+        return hypertetrahedronLattice4D(p, gridSize) * u_morphFactor;
+    }
+    else if (geomType == 9) {
+        return hypersphereLattice4D(p, gridSize) * u_morphFactor;
     }
     else {
         return hypercubeLattice(p3d, gridSize) * u_morphFactor;

@@ -344,7 +344,7 @@ export class UnifiedSaveManager {
             // 3. Update geometry selection if specified
             if (parameters.geometry !== undefined) {
                 const geometryValue = parseInt(parameters.geometry);
-                if (!isNaN(geometryValue) && geometryValue >= 0 && geometryValue <= 7) {
+                if (!isNaN(geometryValue) && geometryValue >= 0 && geometryValue <= 9) {
                     setTimeout(() => {
                         if (window.selectGeometry) {
                             window.selectGeometry(geometryValue);
