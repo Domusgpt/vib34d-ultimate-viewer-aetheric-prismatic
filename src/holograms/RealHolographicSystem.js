@@ -40,7 +40,11 @@ export class RealHolographicSystem {
             // 23-25: WAVE variations
             'WAVE LATTICE', 'WAVE FIELD', 'WAVE QUANTUM',
             // 26-29: CRYSTAL variations
-            'CRYSTAL LATTICE', 'CRYSTAL FIELD', 'CRYSTAL MATRIX', 'CRYSTAL QUANTUM'
+            'CRYSTAL LATTICE', 'CRYSTAL FIELD', 'CRYSTAL MATRIX', 'CRYSTAL QUANTUM',
+            // 30-33: HYPERTETRAHEDRON variations
+            'HYPERTETRAHEDRON LATTICE', 'HYPERTETRAHEDRON FIELD', 'HYPERTETRAHEDRON MATRIX', 'HYPERTETRAHEDRON RESONANCE',
+            // 34-37: HYPERSPHERE variations
+            'HYPERSPHERE LATTICE', 'HYPERSPHERE FIELD', 'HYPERSPHERE MATRIX', 'HYPERSPHERE RESONANCE'
         ];
         
         this.initialize();

@@ -98,7 +98,7 @@ src/
 ```javascript
 // System control
 switchSystem('faceted|quantum|holographic|polychora')
-selectGeometry(0-7)  // Geometry selection
+selectGeometry(0-9)  // Geometry selection
 
 // Parameter control  
 updateParameter('hue', 240)    // Update any parameter
@@ -146,7 +146,7 @@ Mobile works fine now. The canvas management was fixed to avoid WebGL context li
 **11 Parameters control all systems:**
 ```javascript
 {
-  geometry: 0-7,           // 8 different geometry types
+  geometry: 0-9,           // 10 different geometry types
   rot4dXW: -6.28 to 6.28,  // 4D rotation X-W plane
   rot4dYW: -6.28 to 6.28,  // 4D rotation Y-W plane  
   rot4dZW: -6.28 to 6.28,  // 4D rotation Z-W plane

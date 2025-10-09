@@ -106,7 +106,7 @@ export class ParameterMapper {
         // Unified parameter schema (canonical format)
         this.unifiedSchema = {
             // Geometry parameters
-            geometryType: { min: 0, max: 7, default: 0, type: 'integer' },
+            geometryType: { min: 0, max: 9, default: 0, type: 'integer' },
             polytope: { min: 0, max: 5, default: 0, type: 'integer' },
             
             // Density and detail

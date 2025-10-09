@@ -51,11 +51,18 @@ fi
 
 print_status "Environment checks passed"
 
+PLAYWRIGHT_CMD="node scripts/playwright.js"
+
 # Check if Playwright is installed
 if [ ! -d "node_modules/@playwright" ]; then
     print_warning "Playwright not found, installing..."
     npm install
-    npx playwright install
+    $PLAYWRIGHT_CMD install
+fi
+
+if [ ! -d "$HOME/.cache/ms-playwright" ]; then
+    print_warning "Playwright browser binaries not detected, downloading chromium..."
+    $PLAYWRIGHT_CMD install chromium
 fi
 
 # Start the server in background if not already running
@@ -120,10 +127,11 @@ while [[ $# -gt 0 ]]; do
             echo "  --debug             Run tests in debug mode with step-by-step execution"
             echo "  --browser=NAME      Specify browser: chromium, firefox, or webkit"
             echo "  --agent=NAME        Run specific agent only:"
-            echo "                        speed    = Visual Holographic Speed Test Agent"
-            echo "                        density  = Visual Mouse Density Test Agent"
-            echo "                        system   = Visual System Integration Agent"
-            echo "                        override = Visual Parameter Override Agent"
+            echo "                        speed     = Visual Holographic Speed Test Agent"
+            echo "                        density   = Visual Mouse Density Test Agent"
+            echo "                        system    = Visual System Integration Agent"
+            echo "                        override  = Visual Parameter Override Agent"
+            echo "                        geometry  = Visual Geometry Preset Documentation Agent"
             echo "  --help              Show this help message"
             echo ""
             echo "Examples:"
@@ -172,9 +180,13 @@ if [ -n "$SPECIFIC_AGENT" ]; then
             TEST_FILE="tests/visual-parameter-override-test.spec.js"
             AGENT_NAME="Visual Parameter Override Agent"
             ;;
+        geometry)
+            TEST_FILE="tests/visual-geometry-presets.spec.js"
+            AGENT_NAME="Visual Geometry Preset Documentation Agent"
+            ;;
         *)
             print_error "Unknown agent: $SPECIFIC_AGENT"
-            print_info "Available agents: speed, density, system, override"
+            print_info "Available agents: speed, density, system, override, geometry"
             exit 1
             ;;
     esac
@@ -182,7 +194,7 @@ if [ -n "$SPECIFIC_AGENT" ]; then
     print_info "Running $AGENT_NAME..."
     
     # Build command
-    CMD="npx playwright test $TEST_FILE --project=$BROWSER"
+    CMD="$PLAYWRIGHT_CMD test $TEST_FILE --project=$BROWSER"
     if [ "$HEADED" = true ]; then
         CMD="$CMD --headed"
     fi
@@ -238,6 +250,6 @@ echo ""
 print_info "Visual Testing Framework Summary:"
 print_info "• Screenshots saved in: test-results/"
 print_info "• HTML report available in: visual-test-reports/visual-test-report.html"
-print_info "• Playwright HTML report: npx playwright show-report"
+print_info "• Playwright HTML report: $PLAYWRIGHT_CMD show-report"
 
 exit $TEST_EXIT_CODE

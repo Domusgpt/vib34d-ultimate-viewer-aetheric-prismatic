@@ -26,8 +26,8 @@ export class QuantumSystem {
         // Geometry configuration exactly like index.html - QUANTUM ENHANCED
         this.geometries = [
             'Quantum Tetra', 'Quantum Cube', 'Quantum Sphere',
-            'Quantum Torus', 'Quantum Klein', 'Quantum Fractal', 
-            'Quantum Wave', 'Quantum Crystal'
+            'Quantum Torus', 'Quantum Klein', 'Quantum Fractal',
+            'Quantum Wave', 'Quantum Crystal', 'Quantum Hypertetra', 'Quantum Hypersphere'
         ];
         
         console.log('🌌 QuantumSystem: Initialized with enhanced holographic effects');
@@ -214,6 +214,7 @@ export class QuantumSystem {
             btn.className = 'geom-btn';
             btn.textContent = geom;
             btn.dataset.index = index;
+            btn.dataset.geometry = index;
             btn.onclick = () => this.selectGeometry(index);
             
             // Set active state for default geometry (index 0)
