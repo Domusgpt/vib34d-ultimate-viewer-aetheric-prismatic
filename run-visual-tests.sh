@@ -120,10 +120,11 @@ while [[ $# -gt 0 ]]; do
             echo "  --debug             Run tests in debug mode with step-by-step execution"
             echo "  --browser=NAME      Specify browser: chromium, firefox, or webkit"
             echo "  --agent=NAME        Run specific agent only:"
-            echo "                        speed    = Visual Holographic Speed Test Agent"
-            echo "                        density  = Visual Mouse Density Test Agent"
-            echo "                        system   = Visual System Integration Agent"
-            echo "                        override = Visual Parameter Override Agent"
+            echo "                        speed     = Visual Holographic Speed Test Agent"
+            echo "                        density   = Visual Mouse Density Test Agent"
+            echo "                        system    = Visual System Integration Agent"
+            echo "                        override  = Visual Parameter Override Agent"
+            echo "                        geometry  = Visual Geometry Preset Documentation Agent"
             echo "  --help              Show this help message"
             echo ""
             echo "Examples:"
@@ -172,9 +173,13 @@ if [ -n "$SPECIFIC_AGENT" ]; then
             TEST_FILE="tests/visual-parameter-override-test.spec.js"
             AGENT_NAME="Visual Parameter Override Agent"
             ;;
+        geometry)
+            TEST_FILE="tests/visual-geometry-presets.spec.js"
+            AGENT_NAME="Visual Geometry Preset Documentation Agent"
+            ;;
         *)
             print_error "Unknown agent: $SPECIFIC_AGENT"
-            print_info "Available agents: speed, density, system, override"
+            print_info "Available agents: speed, density, system, override, geometry"
             exit 1
             ;;
     esac

@@ -99,7 +99,7 @@ Each engine represents a different mathematical and visual approach:
 
 ```javascript
 {
-  geometry: 0-7,           // 8 different geometric forms
+  geometry: 0-9,           // 10 different geometric forms
   rot4dXW: -6.28 to 6.28,  // 4D rotation in XW plane
   rot4dYW: -6.28 to 6.28,  // 4D rotation in YW plane
   rot4dZW: -6.28 to 6.28,  // 4D rotation in ZW plane

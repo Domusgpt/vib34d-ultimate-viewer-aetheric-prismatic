@@ -52,6 +52,12 @@ class VIB34DVisualTestRunner {
         file: 'visual-parameter-override-test.spec.js',
         description: 'Tests parameter control priority and override behavior',
         icon: '⚖️'
+      },
+      {
+        name: 'Visual Geometry Preset Documentation Agent',
+        file: 'visual-geometry-presets.spec.js',
+        description: 'Documents geometry grids and preset metadata across faceted, quantum, and holographic systems',
+        icon: '📐'
       }
     ];
     
@@ -139,11 +145,12 @@ class VIB34DVisualTestRunner {
         .filter(file => file.endsWith('.png'))
         .filter(file => {
           const agentPrefix = agentFile.replace('.spec.js', '').replace('visual-', '').replace('-test', '');
-          return file.includes(agentPrefix) || 
-                 file.includes('holographic') || 
-                 file.includes('mouse') || 
-                 file.includes('system') || 
-                 file.includes('parameter');
+          return file.includes(agentPrefix) ||
+                 file.includes('holographic') ||
+                 file.includes('mouse') ||
+                 file.includes('system') ||
+                 file.includes('parameter') ||
+                 file.includes('geometry');
         })
         .map(file => ({
           name: file,
