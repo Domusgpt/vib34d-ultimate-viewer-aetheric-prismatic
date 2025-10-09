@@ -486,7 +486,7 @@ void main() {
             name: 'Faceted',
             type: 'faceted',
             description: 'Clean 2D geometric patterns with 4D mathematical foundations',
-            features: ['5-layer rendering', '8 geometry types', '4D rotations', 'Interactive mouse/touch'],
+            features: ['5-layer rendering', '10 geometry types', '4D rotations', 'Interactive mouse/touch'],
             shaderComplexity: 'medium',
             layers: 5
         };

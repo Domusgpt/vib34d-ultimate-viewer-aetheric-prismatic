@@ -142,7 +142,7 @@ const paramManager = new ParameterManager();
 
 // Core parameters
 const defaultParams = {
-    geometry: 0,            // 0-7 geometry types
+    geometry: 0,            // 0-9 geometry types
     rot4dXW: 0.0,          // -6.28 to 6.28 radians
     rot4dYW: 0.0,          // -6.28 to 6.28 radians
     rot4dZW: 0.0,          // -6.28 to 6.28 radians
@@ -162,6 +162,14 @@ paramManager.getAllParameters()         // Get all parameters
 paramManager.validateParameter(name, value) // Validate parameter
 paramManager.getParameterInfo(name)     // Get parameter metadata
 ```
+
+##### Variation presets & geometry coverage
+
+- Preset metadata for every geometry now lives in `src/variations/variationPresets.js`. Each section entry defines the geometry index, the CSS class used by the UI grid, and how many preset "levels" should be rendered.
+- `GeometryLibrary.getVariationParameters` centralizes the numerical defaults per geometry, including the hypertetrahedron and hypersphere heuristics. Updating a geometry's baseline only requires editing this helper.
+- Both `ParameterManager` and `VariationManager` consume the shared preset definitions, ensuring variation counts stay synchronized across faceted, quantum, and holographic systems.
+- When adding a new geometry, append a section entry, provide shader support, and the UI grid plus export systems will automatically surface the extra presets once the geometry count increases.
+- Legacy localStorage payloads with the old 70-slot layout are normalized at load time so testers can keep prior custom captures while still gaining the ten-geometry set.
 
 #### DeviceTiltHandler
 *Device orientation to 4D rotation mapping*
@@ -227,7 +235,7 @@ VIB34D exposes several global functions for UI integration:
 ```javascript
 // System Control
 switchSystem('faceted')                 // Switch visualization system
-selectGeometry(3)                       // Set geometry type (0-7)
+selectGeometry(3)                       // Set geometry type (0-9)
 updateParameter('hue', 240)             // Update any parameter
 randomizeAll()                          // Randomize all parameters
 resetAll()                              // Reset to defaults

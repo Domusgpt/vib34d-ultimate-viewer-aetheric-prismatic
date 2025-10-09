@@ -574,7 +574,7 @@ window.addEventListener('load', () => {
      * Get geometry name helper
      */
     getGeometryName(index) {
-        const names = ['Tetrahedron', 'Hypercube', 'Sphere', 'Torus', 'Klein Bottle', 'Fractal', 'Wave', 'Crystal'];
+        const names = ['Tetrahedron', 'Hypercube', 'Sphere', 'Torus', 'Klein Bottle', 'Fractal', 'Wave', 'Crystal', 'Hypertetrahedron', 'Hypersphere'];
         return names[index] || 'Unknown';
     }
 }
