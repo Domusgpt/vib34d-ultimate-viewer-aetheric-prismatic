@@ -44,7 +44,7 @@ async function validateSetup() {
   
   if (!playwrightAvailable) {
     console.log('❌ Setup validation failed - Playwright is required');
-    console.log('💡 Run: npm install && npx playwright install');
+    console.log('💡 Run: npm install && npm run playwright:install');
     process.exit(1);
   }
   
