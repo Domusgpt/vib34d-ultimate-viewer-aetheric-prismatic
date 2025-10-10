@@ -1,0 +1,62 @@
+[
+  {
+    "geometry": 0,
+    "name": "Tetrahedron",
+    "file": "00-tetrahedron.svg",
+    "segments": 6
+  },
+  {
+    "geometry": 1,
+    "name": "Hypercube",
+    "file": "01-hypercube.svg",
+    "segments": 32
+  },
+  {
+    "geometry": 2,
+    "name": "Sphere",
+    "file": "02-sphere.svg",
+    "segments": 216
+  },
+  {
+    "geometry": 3,
+    "name": "Torus",
+    "file": "03-torus.svg",
+    "segments": 456
+  },
+  {
+    "geometry": 4,
+    "name": "Klein Bottle",
+    "file": "04-klein-bottle.svg",
+    "segments": 700
+  },
+  {
+    "geometry": 5,
+    "name": "Fractal",
+    "file": "05-fractal.svg",
+    "segments": 15
+  },
+  {
+    "geometry": 6,
+    "name": "Wave",
+    "file": "06-wave.svg",
+    "segments": 64
+  },
+  {
+    "geometry": 7,
+    "name": "Crystal",
+    "file": "07-crystal.svg",
+    "segments": 12
+  },
+  {
+    "geometry": 8,
+    "name": "Hypertetrahedron",
+    "file": "08-hypertetrahedron.svg",
+    "segments": 10
+  },
+  {
+    "geometry": 9,
+    "name": "Hypersphere",
+    "file": "09-hypersphere.svg",
+    "segments": 120
+  }
+]
