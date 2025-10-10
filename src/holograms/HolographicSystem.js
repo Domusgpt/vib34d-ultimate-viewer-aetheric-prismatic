@@ -712,7 +712,8 @@ export class HolographicSystem {
     getGeometryName(geometryId) {
         const geometryNames = [
             'TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS',
-            'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'
+            'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL',
+            'HYPERTETRAHEDRON', 'HYPERSPHERE'
         ];
         return geometryNames[geometryId] || 'UNKNOWN';
     }

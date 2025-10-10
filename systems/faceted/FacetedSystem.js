@@ -26,8 +26,8 @@ export class FacetedSystem {
         // Geometry configuration exactly like index.html
         this.geometries = [
             'Tetra', 'Cube', 'Sphere',
-            'Torus', 'Klein', 'Fractal', 
-            'Wave', 'Crystal'
+            'Torus', 'Klein', 'Fractal',
+            'Wave', 'Crystal', 'Hypertetra', 'Hypersphere'
         ];
         
         console.log('🔷 FacetedSystem: Initialized');
@@ -203,6 +203,7 @@ export class FacetedSystem {
             btn.className = 'geom-btn';
             btn.textContent = geom;
             btn.dataset.index = index;
+            btn.dataset.geometry = index;
             btn.onclick = () => this.selectGeometry(index);
             
             // Set active state for default geometry (index 0)
