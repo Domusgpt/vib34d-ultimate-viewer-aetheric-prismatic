@@ -1079,12 +1079,12 @@
             faceted: [
                 'Tetra', 'Cube', 'Sphere',
                 'Torus', 'Klein', 'Fractal',
-                'Wave', 'Crystal'
+                'Wave', 'Crystal', 'Hypertetra', 'Hypersphere'
             ],
             quantum: [
                 'Quantum Tetra', 'Quantum Cube', 'Quantum Sphere',
                 'Quantum Torus', 'Quantum Klein', 'Quantum Fractal',
-                'Quantum Wave', 'Quantum Crystal'
+                'Quantum Wave', 'Quantum Crystal', 'Quantum Hypertetra', 'Quantum Hypersphere'
             ],
             polychora: [
                 '5-Cell', 'Tesseract', '16-Cell',
@@ -1693,8 +1693,9 @@
             if (!grid) return;
             
             const geoList = window.geometries?.[system] || window.geometries?.faceted || [
-                'TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 
-                'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'
+                'TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS',
+                'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL',
+                'HYPERTETRAHEDRON', 'HYPERSPHERE'
             ];
             
             grid.innerHTML = geoList.map((name, i) => 
