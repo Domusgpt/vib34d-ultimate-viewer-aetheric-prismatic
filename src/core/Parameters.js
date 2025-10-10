@@ -1,3 +1,9 @@
+import { GeometryLibrary } from '../geometry/GeometryLibrary.js';
+import {
+    DEFAULT_VARIATION_COUNT,
+    getDefaultVariationDefinition
+} from '../variations/variationPresets.js';
+
 /**
  * VIB34D Parameter Management System
  * Unified parameter control for both holographic and polytopal systems
@@ -26,9 +32,13 @@ export class ParameterManager {
             saturation: 0.8,   // Color saturation (0 to 1)
             
             // Geometry selection
-            geometry: 0        // Current geometry type (0-7)
+            geometry: 0        // Current geometry type (0-9)
         };
-        
+
+        this.geometryNames = GeometryLibrary.getGeometryNames().map(name => `${name} LATTICE`);
+
+        this.presetVariationCount = DEFAULT_VARIATION_COUNT;
+
         // Parameter definitions for validation and UI
         this.parameterDefs = {
             variation: { min: 0, max: 99, step: 1, type: 'int' },
@@ -43,7 +53,7 @@ export class ParameterManager {
             hue: { min: 0, max: 360, step: 1, type: 'int' },
             intensity: { min: 0, max: 1, step: 0.01, type: 'float' },
             saturation: { min: 0, max: 1, step: 0.01, type: 'float' },
-            geometry: { min: 0, max: 7, step: 1, type: 'int' }
+            geometry: { min: 0, max: 9, step: 1, type: 'int' }
         };
         
         // Default parameter backup for reset
@@ -179,19 +189,12 @@ export class ParameterManager {
     updateVariationInfo() {
         const variationDisplay = document.getElementById('currentVariationDisplay');
         if (variationDisplay) {
-            const geometryNames = [
-                'TETRAHEDRON LATTICE', 'HYPERCUBE LATTICE', 'SPHERE LATTICE', 'TORUS LATTICE',
-                'KLEIN BOTTLE LATTICE', 'FRACTAL LATTICE', 'WAVE LATTICE', 'CRYSTAL LATTICE'
-            ];
-            
-            const geometryType = Math.floor(this.params.variation / 4);
-            const geometryLevel = (this.params.variation % 4) + 1;
-            const geometryName = geometryNames[geometryType] || 'CUSTOM VARIATION';
-            
-            variationDisplay.textContent = `${this.params.variation + 1} - ${geometryName}`;
-            
-            if (this.params.variation < 30) {
-                variationDisplay.textContent += ` ${geometryLevel}`;
+            const definition = getDefaultVariationDefinition(this.params.variation);
+            if (definition) {
+                const geometryName = `${GeometryLibrary.getGeometryName(definition.geometry)} LATTICE`;
+                variationDisplay.textContent = `${this.params.variation + 1} - ${geometryName} ${definition.level + 1}`;
+            } else {
+                variationDisplay.textContent = `${this.params.variation + 1} - CUSTOM VARIATION`;
             }
         }
     }
@@ -215,9 +218,13 @@ export class ParameterManager {
         this.params.chaos = Math.random();
         this.params.speed = 0.1 + Math.random() * 2.9;
         this.params.hue = Math.random() * 360;
-        this.params.geometry = Math.floor(Math.random() * 8);
+        this.params.geometry = Math.floor(Math.random() * this.geometryNames.length);
     }
-    
+
+    getPresetVariationCount() {
+        return this.presetVariationCount;
+    }
+
     /**
      * Reset to default parameters
      */
@@ -258,27 +265,22 @@ export class ParameterManager {
      * Generate variation-specific parameters
      */
     generateVariationParameters(variationIndex) {
-        if (variationIndex < 30) {
-            // Default variations with consistent patterns
-            const geometryType = Math.floor(variationIndex / 4);
-            const level = variationIndex % 4;
-            
-            return {
-                geometry: geometryType,
-                gridDensity: 8 + (level * 4),
-                morphFactor: 0.5 + (level * 0.3),
-                chaos: level * 0.15,
-                speed: 0.8 + (level * 0.2),
-                hue: (geometryType * 45 + level * 15) % 360,
-                rot4dXW: (level - 1.5) * 0.5,
-                rot4dYW: (geometryType % 2) * 0.3,
-                rot4dZW: ((geometryType + level) % 3) * 0.2,
-                dimension: 3.2 + (level * 0.2)
-            };
+        const presetCount = this.getPresetVariationCount();
+        if (variationIndex < presetCount) {
+            const definition = getDefaultVariationDefinition(variationIndex);
+            if (definition) {
+                const params = GeometryLibrary.getVariationParameters(definition.geometry, definition.level);
+                return {
+                    geometry: definition.geometry,
+                    ...params
+                };
+            }
         } else {
             // Custom variations - return current parameters
             return { ...this.params };
         }
+
+        return { ...this.params };
     }
     
     /**
