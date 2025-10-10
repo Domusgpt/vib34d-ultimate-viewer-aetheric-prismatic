@@ -181,7 +181,7 @@ export class ExportSystem {
             const variantName = this.system.variantNames[i] || `Base Variant ${i + 1}`;
             
             // Create base variant with standard parameters
-            const geometryType = Math.floor(i / 4); // 0-7 for 8 geometries
+            const geometryType = Math.floor(i / 4); // 0-9 for 10 geometries
             const variation = i % 4; // 0-3 for 4 variations per geometry
             
             variations.push({
@@ -645,13 +645,15 @@ export class ExportSystem {
     getGeometryName(geometryType) {
         const geometryNames = [
             'TETRAHEDRON', 'TETRAHEDRON', 'TETRAHEDRON', 'TETRAHEDRON',
-            'HYPERCUBE', 'HYPERCUBE', 'HYPERCUBE', 'HYPERCUBE', 
+            'HYPERCUBE', 'HYPERCUBE', 'HYPERCUBE', 'HYPERCUBE',
             'SPHERE', 'SPHERE', 'SPHERE', 'SPHERE',
             'TORUS', 'TORUS', 'TORUS', 'TORUS',
             'KLEIN BOTTLE', 'KLEIN BOTTLE', 'KLEIN BOTTLE', 'KLEIN BOTTLE',
             'FRACTAL', 'FRACTAL', 'FRACTAL',
             'WAVE', 'WAVE', 'WAVE',
-            'CRYSTAL', 'CRYSTAL', 'CRYSTAL', 'CRYSTAL'
+            'CRYSTAL', 'CRYSTAL', 'CRYSTAL', 'CRYSTAL',
+            'HYPERTETRAHEDRON', 'HYPERTETRAHEDRON', 'HYPERTETRAHEDRON', 'HYPERTETRAHEDRON',
+            'HYPERSPHERE', 'HYPERSPHERE', 'HYPERSPHERE', 'HYPERSPHERE'
         ];
         return geometryNames[geometryType] || 'UNKNOWN';
     }
