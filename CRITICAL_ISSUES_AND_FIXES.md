@@ -427,7 +427,7 @@ validateCollectionData(data, filename) {
                 if (variation.parameters.geometry !== undefined) {
                     const geom = variation.parameters.geometry;
                     if (!Number.isInteger(geom) || geom < 0 || geom > 7) {
-                        errors.push(`Variation ${index}: Invalid geometry value ${geom} (must be 0-7)`);
+                        errors.push(`Variation ${index}: Invalid geometry value ${geom} (must be 0-9)`);
                     }
                 }
                 
@@ -525,7 +525,7 @@ normalizeParameters(params, targetSystem = null) {
 
 validateParameter(value, type, defaultValue) {
     const parameterRanges = {
-        geometry: { min: 0, max: 7, type: 'int' },
+        geometry: { min: 0, max: 9, type: 'int' },
         gridDensity: { min: 5, max: 100, type: 'float' },
         morphFactor: { min: 0, max: 2, type: 'float' },
         speed: { min: 0.1, max: 3, type: 'float' },

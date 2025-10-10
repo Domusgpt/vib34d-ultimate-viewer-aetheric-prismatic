@@ -111,7 +111,7 @@ WORKING FILES:
 
 | Parameter | Range | Purpose |
 |-----------|-------|---------|
-| `geometry` | 0-7 | Geometry type selection |
+| `geometry` | 0-9 | Geometry type selection |
 | `rot4dXW` | -6.28 to 6.28 | 4D rotation X-W plane |
 | `rot4dYW` | -6.28 to 6.28 | 4D rotation Y-W plane |
 | `rot4dZW` | -6.28 to 6.28 | 4D rotation Z-W plane |

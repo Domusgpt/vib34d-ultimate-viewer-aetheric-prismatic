@@ -142,7 +142,7 @@ const paramManager = new ParameterManager();
 
 // Core parameters
 const defaultParams = {
-    geometry: 0,            // 0-7 geometry types
+    geometry: 0,            // 0-9 geometry types
     rot4dXW: 0.0,          // -6.28 to 6.28 radians
     rot4dYW: 0.0,          // -6.28 to 6.28 radians
     rot4dZW: 0.0,          // -6.28 to 6.28 radians
@@ -162,6 +162,17 @@ paramManager.getAllParameters()         // Get all parameters
 paramManager.validateParameter(name, value) // Validate parameter
 paramManager.getParameterInfo(name)     // Get parameter metadata
 ```
+
+##### Variation presets & geometry coverage
+
+- Preset metadata for every geometry now lives in `src/variations/variationPresets.js`. Each section entry defines the geometry index, the CSS class used by the UI grid, and how many preset "levels" should be rendered.
+- `GeometryLibrary.getVariationParameters` centralizes the numerical defaults per geometry, including the hypertetrahedron and hypersphere heuristics. Updating a geometry's baseline only requires editing this helper.
+- Both `ParameterManager` and `VariationManager` consume the shared preset definitions, ensuring variation counts stay synchronized across faceted, quantum, and holographic systems.
+- When adding a new geometry, append a section entry, provide shader support, and the UI grid plus export systems will automatically surface the extra presets once the geometry count increases.
+- Legacy localStorage payloads with the old 70-slot layout are normalized at load time so testers can keep prior custom captures while still gaining the ten-geometry set.
+- The Playwright **Geometry Preset Documentation Agent** (`tests/visual-geometry-presets.spec.js`) captures the geometry grids and validates preset metadata. Run it via `npm run test -- tests/visual-geometry-presets.spec.js --project=chromium` or through `./run-visual-tests.sh --agent=geometry` to refresh the screenshot gallery in `test-results/`.
+- The `scripts/playwright.js` wrapper automatically downloads the requested Playwright browsers (based on CLI `--browser`/`--project` flags or the config projects) before a run. If you are developing offline, pre-run `npm run playwright:install` while connected or invoke the test command with `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` to skip the auto-download check—`run-visual-tests.sh` honours the same environment variable.
+- Environments that cannot fetch Playwright binaries can still document coverage by running `npm run geometry:icons`, which generates SVG silhouettes and a manifest under `docs/geometry-icons/` sourced from the shared preset metadata.
 
 #### DeviceTiltHandler
 *Device orientation to 4D rotation mapping*
@@ -227,7 +238,7 @@ VIB34D exposes several global functions for UI integration:
 ```javascript
 // System Control
 switchSystem('faceted')                 // Switch visualization system
-selectGeometry(3)                       // Set geometry type (0-7)
+selectGeometry(3)                       // Set geometry type (0-9)
 updateParameter('hue', 240)             // Update any parameter
 randomizeAll()                          // Randomize all parameters
 resetAll()                              // Reset to defaults

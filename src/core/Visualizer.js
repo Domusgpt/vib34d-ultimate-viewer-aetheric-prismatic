@@ -272,6 +272,43 @@ float geometryFunction(vec4 p) {
         float cube = max(max(abs(pos.x), abs(pos.y)), max(abs(pos.z), abs(pos.w)));
         return cube * u_morphFactor;
     }
+    else if (geomType == 8) {
+        // Hypertetrahedron lattice - 5-cell facets in 4D
+        float density = u_gridDensity * 0.12;
+        vec4 dir0 = normalize(vec4(1.0, 1.0, 1.0, -1.0));
+        vec4 dir1 = normalize(vec4(1.0, -1.0, -1.0, -1.0));
+        vec4 dir2 = normalize(vec4(-1.0, 1.0, -1.0, -1.0));
+        vec4 dir3 = normalize(vec4(-1.0, -1.0, 1.0, -1.0));
+        vec4 dir4 = normalize(vec4(0.0, 0.0, 0.0, 2.0));
+
+        float d0 = abs(dot(p, dir0));
+        float d1 = abs(dot(p, dir1));
+        float d2 = abs(dot(p, dir2));
+        float d3 = abs(dot(p, dir3));
+        float d4 = abs(dot(p, dir4));
+
+        float facetDist = min(min(min(d0, d1), min(d2, d3)), d4);
+        float shells = abs(fract(facetDist * density) - 0.5) * 2.0;
+        float apex = abs(sin(d4 * density));
+        float radial = abs(sin(length(p.xyz) * density * 0.6 + p.w * 0.8));
+
+        return min(shells, min(apex, radial)) * u_morphFactor;
+    }
+    else if (geomType == 9) {
+        // Hypersphere lattice - glome shells and banding
+        float density = u_gridDensity * 0.08;
+        float radius = length(p);
+        float chi = atan(p.w, length(p.xyz) + 1e-5);
+        float theta = atan(length(p.xy), p.z + 1e-5);
+        float phi = atan(p.y, p.x + 1e-5);
+
+        float shells = abs(fract(radius * density) - 0.5) * 2.0;
+        float chiBands = abs(sin(chi * (density * 2.5 + 1.5)));
+        float thetaBands = abs(sin(theta * (density * 1.8 + 1.2)));
+        float phiBands = abs(sin(phi * (density * 0.9 + 2.0)));
+
+        return min(shells, min(chiBands, min(thetaBands, phiBands))) * u_morphFactor;
+    }
     else {
         // Default hypercube - UNIFORM GRID DENSITY
         vec4 pos = fract(p * u_gridDensity * 0.08);

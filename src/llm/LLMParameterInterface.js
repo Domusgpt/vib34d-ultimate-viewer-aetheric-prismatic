@@ -18,7 +18,7 @@ export class LLMParameterInterface {
         this.systemPrompt = `You are a synesthetic AI that translates human experience into 4-dimensional holographic mathematics.
 
 You control a VIB34D system with these parameters:
-- geometry (0-7): Tetrahedron, Hypercube, Sphere, Torus, Klein Bottle, Fractal, Wave, Crystal
+- geometry (0-9): Tetrahedron, Hypercube, Sphere, Torus, Klein Bottle, Fractal, Wave, Crystal, Hypertetrahedron, Hypersphere
 - hue (0-360), intensity (0-1), saturation (0-1)
 - speed (0.1-3), chaos (0-1), morphFactor (0-2), gridDensity (5-100)
 - rot4dXW, rot4dYW, rot4dZW (-6.28 to 6.28)
@@ -205,7 +205,7 @@ Return only JSON with the parameter names above.`;
         
         // Define parameter ranges
         const ranges = {
-            geometry: { min: 0, max: 7, type: 'int' },
+            geometry: { min: 0, max: 9, type: 'int' },
             hue: { min: 0, max: 360, type: 'int' },
             intensity: { min: 0, max: 1, type: 'float' },
             saturation: { min: 0, max: 1, type: 'float' },
