@@ -4,10 +4,15 @@
   "description": "**Revolutionary transformation: 20+ WebGL contexts → 1 unified context**",
   "main": "index.js",
   "scripts": {
-    "test": "npx playwright test",
-    "test:headed": "npx playwright test --headed",
-    "test:debug": "npx playwright test --debug",
-    "test:report": "npx playwright show-report",
+    "playwright": "node scripts/playwright.js",
+    "playwright:install": "node scripts/playwright.js install",
+    "test": "node scripts/playwright.js test",
+    "test:headed": "node scripts/playwright.js test --headed",
+    "test:debug": "node scripts/playwright.js test --debug",
+    "test:report": "node scripts/playwright.js show-report",
+    "geometry:icons": "node scripts/generate-geometry-icons.js",
+    "geometry:verify": "node scripts/verify-geometry-assets.js",
+    "geometry:report": "node scripts/report-geometry-assets.js --output DOCS/GEOMETRY-ASSET-STATUS.md",
     "dev": "python3 -m http.server 8145"
   },
   "repository": {
