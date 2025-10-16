@@ -124,7 +124,7 @@
             display: flex;
             gap: 10px;
         }
-        
+
         .control-btn {
             background: rgba(0, 255, 255, 0.1);
             border: 1px solid #00ffff;
@@ -141,10 +141,50 @@
             background: rgba(0, 255, 255, 0.2);
             box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
         }
-        
+
         .control-btn.primary {
             background: #00ffff;
             color: #000;
+        }
+
+        /* STATUS TOAST */
+        .status-toast {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            max-width: 320px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid rgba(0, 255, 255, 0.35);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+            font-size: 0.78rem;
+            line-height: 1.4;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+            z-index: 900;
+        }
+
+        .status-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .status-toast.success {
+            border-color: rgba(0, 255, 128, 0.6);
+            box-shadow: 0 0 12px rgba(0, 255, 128, 0.25);
+        }
+
+        .status-toast.error {
+            border-color: rgba(255, 80, 80, 0.7);
+            box-shadow: 0 0 12px rgba(255, 80, 80, 0.25);
+        }
+
+        .status-toast.info {
+            border-color: rgba(0, 255, 255, 0.5);
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.25);
         }
         
         /* UNIFIED CANVAS AREA */
@@ -388,7 +428,7 @@
             </div>
             <div class="viewer-controls">
                 <button class="control-btn" onclick="toggleParameters()">📊 Parameters</button>
-                <button class="control-btn" onclick="saveVariation()">💾 Save</button>
+                <button class="control-btn" title="Click to save to gallery • Shift: download • Alt: browser storage • Ctrl/Cmd: share link" onclick="saveVariation(event)">💾 Save</button>
                 <button class="control-btn" onclick="shareVariation()">🔗 Share</button>
                 <button class="control-btn primary" onclick="openInMainEngine()">🎮 Edit</button>
                 <button class="control-btn" onclick="window.close()">✕ Close</button>
@@ -412,34 +452,125 @@
                 <!-- Parameters will be populated dynamically -->
             </div>
         </div>
+
+        <!-- STATUS TOAST -->
+        <div id="status-toast" class="status-toast" aria-live="polite"></div>
     </div>
-    
+
     <!-- UNIFIED VIEWER SCRIPT -->
     <script type="module">
         // Import unified architecture
         import { VIB34DUnifiedEngine } from './src/core/UnifiedEngine.js';
+        import { UnifiedSaveManager } from './src/core/UnifiedSaveManager.js';
         
         // Global state
         let unifiedEngine = null;
+        let unifiedSaveManager = null;
         let currentVariation = null;
         let currentSystem = 'faceted';
         let parametersVisible = false;
+        let statusTimeoutId = null;
         
         // URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const isPreviewMode = urlParams.has('preview');
         
+        function showStatus(message, type = 'info', duration = 4000) {
+            const toast = document.getElementById('status-toast');
+            if (!toast) return;
+
+            if (statusTimeoutId) {
+                clearTimeout(statusTimeoutId);
+                statusTimeoutId = null;
+            }
+
+            toast.className = 'status-toast';
+            if (type) {
+                toast.classList.add(type);
+            }
+
+            toast.innerHTML = message;
+
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+
+            const timeout = duration ?? 4000;
+            if (timeout && timeout > 0) {
+                statusTimeoutId = setTimeout(() => hideStatus(), timeout);
+            }
+        }
+
+        function hideStatus() {
+            const toast = document.getElementById('status-toast');
+            if (!toast) return;
+
+            toast.classList.remove('show', 'success', 'error', 'info');
+            statusTimeoutId = null;
+
+            setTimeout(() => {
+                toast.className = 'status-toast';
+                toast.innerHTML = '';
+            }, 300);
+        }
+
+        function determineSaveTarget(event) {
+            if (event && (event.metaKey || event.ctrlKey)) {
+                return 'share';
+            }
+
+            if (event && event.shiftKey) {
+                return 'download';
+            }
+
+            if (event && event.altKey) {
+                return 'localStorage';
+            }
+
+            return 'gallery';
+        }
+
+        function getTargetLabel(target) {
+            switch (target) {
+                case 'download':
+                    return 'a download';
+                case 'localStorage':
+                    return 'browser storage';
+                case 'share':
+                    return 'a shareable link';
+                default:
+                    return 'the gallery';
+            }
+        }
+
+        function escapeHtml(value) {
+            if (typeof value !== 'string') return '';
+            return value
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function syncParameterState() {
+            if (!currentVariation || !currentVariation.parameters) return;
+            window.userParameterState = { ...currentVariation.parameters };
+        }
+
         // Initialize unified viewer
         async function initializeUnifiedViewer() {
             try {
                 console.log('🔍 Initializing Unified Viewer with single WebGL context...');
-                
+
                 // Parse variation parameters from URL
                 currentVariation = parseVariationFromURL();
                 currentSystem = currentVariation.system || 'faceted';
-                
+                window.currentSystem = currentSystem;
+                syncParameterState();
+
                 console.log('📊 Loading variation:', currentVariation);
-                
+
                 // Create unified engine (1 WebGL context)
                 unifiedEngine = new VIB34DUnifiedEngine({
                     useSingleContext: true,
@@ -447,10 +578,25 @@
                     enableTouchControls: !isPreviewMode, // Disable in preview mode
                     viewerMode: true // Special mode for viewer
                 });
-                
+
+                // Minimal parameter/status hooks for save manager compatibility
+                unifiedEngine.parameterManager = {
+                    getAllParameters: () => ({ ...currentVariation.parameters })
+                };
+                unifiedEngine.getParameters = () => ({ ...currentVariation.parameters });
+                unifiedEngine.statusManager = {
+                    success: (message) => showStatus(message, 'success', 6000)
+                };
+
+                window.engine = unifiedEngine;
+                window.unifiedEngine = unifiedEngine;
+
+                unifiedSaveManager = new UnifiedSaveManager(unifiedEngine);
+                window.unifiedSaveManager = unifiedSaveManager;
+
                 // Update UI with variation info
                 updateViewerUI();
-                
+
                 // Load the variation
                 await loadVariation();
                 
@@ -535,32 +681,35 @@
         
         async function loadVariation() {
             if (!unifiedEngine) return;
-            
+
             console.log(`🔄 Loading ${currentVariation.system} variation with parameters:`, currentVariation.parameters);
-            
+
             // Switch to the correct system
             const success = unifiedEngine.switchSystem(currentVariation.system);
             if (!success) {
                 console.warn(`Failed to switch to system: ${currentVariation.system}`);
                 return;
             }
-            
+
+            window.currentSystem = currentVariation.system;
+
             // Apply all parameters
             Object.entries(currentVariation.parameters).forEach(([name, value]) => {
                 if (unifiedEngine.updateParameter) {
                     unifiedEngine.updateParameter(name, value);
                 }
-                
+
                 // Also apply to the active system directly
                 const activeSystem = unifiedEngine.systems.get(currentVariation.system);
                 if (activeSystem && activeSystem.renderer && activeSystem.renderer.updateParameter) {
                     activeSystem.renderer.updateParameter(name, value);
                 }
             });
-            
+
             // Update parameters display
             updateParametersDisplay();
-            
+            syncParameterState();
+
             console.log('✅ Variation loaded successfully');
         }
         
@@ -608,15 +757,84 @@
             }
         }
         
-        function saveVariation() {
+        async function saveVariation(event) {
             if (isPreviewMode) {
                 alert('Preview mode - saving not available');
                 return;
             }
-            
-            // TODO: Implement save functionality with unified save manager
-            console.log('💾 Save variation:', currentVariation);
-            alert('Save functionality coming soon!');
+
+            if (!unifiedSaveManager) {
+                alert('Save system not ready yet. Please wait a moment and try again.');
+                return;
+            }
+
+            const target = determineSaveTarget(event);
+            const variationSnapshot = unifiedSaveManager.captureCurrentState();
+            const safeName = escapeHtml(variationSnapshot.name);
+            const targetLabel = getTargetLabel(target);
+
+            showStatus(`Saving <strong>${safeName}</strong> to ${targetLabel}…`, 'info', 0);
+
+            try {
+                const saveOptions = {
+                    target,
+                    variation: variationSnapshot
+                };
+
+                if (target === 'download') {
+                    saveOptions.format = 'json';
+                }
+
+                const result = await unifiedSaveManager.save(saveOptions);
+
+                if (!result || !result.success) {
+                    throw new Error(result?.error || 'Unknown save error');
+                }
+
+                const savedVariation = result.variation || variationSnapshot;
+                if (!savedVariation.id && result.id) {
+                    savedVariation.id = result.id;
+                }
+
+                currentVariation = {
+                    ...savedVariation,
+                    parameters: { ...savedVariation.parameters }
+                };
+
+                if (!currentVariation.system) {
+                    currentVariation.system = currentSystem;
+                }
+
+                currentSystem = currentVariation.system;
+                window.currentSystem = currentVariation.system;
+                syncParameterState();
+                updateViewerUI();
+                updateParametersDisplay();
+
+                switch (target) {
+                    case 'download': {
+                        const filename = result.filename || 'variation.json';
+                        showStatus(`📥 Downloading <strong>${escapeHtml(currentVariation.name)}</strong> (${escapeHtml(filename)})`, 'success', 6000);
+                        break;
+                    }
+                    case 'localStorage':
+                        showStatus(`💾 Stored <strong>${escapeHtml(currentVariation.name)}</strong> in browser storage`, 'success', 5000);
+                        break;
+                    case 'share': {
+                        const url = result.url ? `<br><small>${escapeHtml(result.url)}</small>` : '';
+                        showStatus(`🔗 Share link ready for <strong>${escapeHtml(currentVariation.name)}</strong>${url}`, 'success', 6000);
+                        break;
+                    }
+                    default: {
+                        const totalToday = result.totalInCollection ? ` <small>(${result.totalInCollection} today)</small>` : '';
+                        showStatus(`✅ Saved <strong>${escapeHtml(currentVariation.name)}</strong> to the gallery${totalToday}`, 'success', 6000);
+                        break;
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Unified viewer save failed:', error);
+                showStatus(`❌ Save failed: ${escapeHtml(error.message || error.toString())}`, 'error', 6000);
+            }
         }
         
         function shareVariation() {
