@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<rect width="512" height="512" fill="#05060d" rx="32" ry="32" />
+<g><line x1="237.78" y1="219.99" x2="471.04" y2="138.04" stroke="#52e5ff" stroke-width="4" stroke-linecap="round" opacity="0.9" /><line x1="237.78" y1="219.99" x2="40.96" y2="40.96" stroke="#52e5ff" stroke-width="4" stroke-linecap="round" opacity="0.9" /><line x1="237.78" y1="219.99" x2="175.20" y2="471.04" stroke="#52e5ff" stroke-width="4" stroke-linecap="round" opacity="0.9" /><line x1="471.04" y1="138.04" x2="40.96" y2="40.96" stroke="#52e5ff" stroke-width="4" stroke-linecap="round" opacity="0.9" /><line x1="471.04" y1="138.04" x2="175.20" y2="471.04" stroke="#52e5ff" stroke-width="4" stroke-linecap="round" opacity="0.9" /><line x1="40.96" y1="40.96" x2="175.20" y2="471.04" stroke="#52e5ff" stroke-width="4" stroke-linecap="round" opacity="0.9" /></g>
+</svg>

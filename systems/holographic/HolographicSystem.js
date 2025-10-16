@@ -1,3 +1,5 @@
+import { GEOMETRY_SECTIONS } from '../../src/variations/variationPresets.js';
+
 /**
  * VIB34D Holographic System - Complete modular implementation
  * ULTRA PRESERVATION: Every visual effect, audio reactivity, pink/magenta theme, and interaction preserved EXACTLY
@@ -40,8 +42,16 @@ export class HolographicSystem {
             // 23-25: WAVE variations
             'WAVE LATTICE', 'WAVE FIELD', 'WAVE QUANTUM',
             // 26-29: CRYSTAL variations
-            'CRYSTAL LATTICE', 'CRYSTAL FIELD', 'CRYSTAL MATRIX', 'CRYSTAL QUANTUM'
+            'CRYSTAL LATTICE', 'CRYSTAL FIELD', 'CRYSTAL MATRIX', 'CRYSTAL QUANTUM',
+            // 30-33: HYPERTETRAHEDRON variations
+            'HYPERTETRAHEDRON LATTICE', 'HYPERTETRAHEDRON FIELD', 'HYPERTETRAHEDRON MATRIX', 'HYPERTETRAHEDRON RESONANCE',
+            // 34-37: HYPERSPHERE variations
+            'HYPERSPHERE LATTICE', 'HYPERSPHERE FIELD', 'HYPERSPHERE MATRIX', 'HYPERSPHERE RESONANCE'
         ];
+
+        this.geometryButtons = this.buildGeometryButtons();
+        this.activeGeometry = 0;
+        this.activeVariant = 0;
         
         // Audio reactivity system - PRESERVED EXACTLY
         this.audioEnabled = false;
@@ -134,6 +144,7 @@ export class HolographicSystem {
             this.updateUI();
             
             this.isActive = true;
+            this.applyVariant(this.activeVariant);
             console.log('✅ HolographicSystem: Activated successfully with REAL audio-reactive holographic mode');
             return true;
         } catch (error) {
@@ -238,31 +249,75 @@ export class HolographicSystem {
     /**
      * Setup variant UI exactly like index.html - HOLOGRAPHIC USES VARIANTS NOT GEOMETRY
      */
+    buildGeometryButtons() {
+        let offset = 0;
+        return GEOMETRY_SECTIONS.map(section => {
+            const button = {
+                geometry: section.geometry,
+                label: section.name,
+                variantIndex: offset,
+                levels: section.levels
+            };
+            offset += section.levels;
+            return button;
+        });
+    }
+
     setupVariants() {
         const geometryGrid = document.getElementById('geometryGrid');
         if (!geometryGrid) return;
-        
+
         geometryGrid.innerHTML = '';
-        
-        // CRITICAL: Holographic system shows first 8 variants in 3x3 grid (original behavior)
-        const displayVariants = this.variantNames.slice(0, 8);
-        
-        displayVariants.forEach((variant, index) => {
+
+        this.geometryButtons.forEach(button => {
             const btn = document.createElement('button');
             btn.className = 'geom-btn';
-            btn.textContent = variant;
-            btn.dataset.index = index;
-            btn.onclick = () => this.selectVariant(index);
-            
-            // Set active state for default variant (index 0)
-            if (index === 0) {
+            btn.textContent = `${button.label.toUpperCase()} LATTICE`;
+            btn.dataset.index = button.geometry;
+            btn.dataset.geometry = button.geometry;
+            btn.dataset.variant = button.variantIndex;
+            btn.onclick = () => this.selectGeometry(button.geometry);
+
+            if (button.geometry === this.activeGeometry) {
                 btn.classList.add('active');
             }
-            
+
             geometryGrid.appendChild(btn);
         });
-        
-        console.log('✨ HolographicSystem: Holographic variant UI setup complete');
+
+        console.log('✨ HolographicSystem: Holographic geometry UI setup complete');
+    }
+
+    highlightGeometryButtons(geometryIndex) {
+        document.querySelectorAll('.geom-btn').forEach(btn => {
+            const value = parseInt(btn.dataset.geometry || btn.dataset.index || '-1', 10);
+            btn.classList.toggle('active', value === geometryIndex);
+        });
+    }
+
+    getGeometryIndexForVariant(variantIndex) {
+        for (const button of this.geometryButtons) {
+            if (
+                variantIndex >= button.variantIndex &&
+                variantIndex < button.variantIndex + button.levels
+            ) {
+                return button.geometry;
+            }
+        }
+
+        return this.geometryButtons.length ? this.geometryButtons[0].geometry : 0;
+    }
+
+    getBaseVariantForGeometry(geometryIndex) {
+        const match = this.geometryButtons.find(button => button.geometry === geometryIndex);
+        return match ? match.variantIndex : 0;
+    }
+
+    selectGeometry(geometryIndex) {
+        const baseVariant = this.getBaseVariantForGeometry(geometryIndex);
+        const variantName = this.variantNames[baseVariant] || `${geometryIndex}`;
+        console.log(`✨ HolographicSystem: Selecting holographic geometry ${geometryIndex} (${variantName})`);
+        this.applyVariant(baseVariant);
     }
 
     /**
@@ -287,7 +342,9 @@ export class HolographicSystem {
         Object.entries(defaultParams).forEach(([param, value]) => {
             this.parameters.set(param, value);
         });
-        
+
+        this.parameters.set('variant', this.activeVariant);
+
         console.log('✨ HolographicSystem: REAL audio-reactive parameters initialized');
     }
 
@@ -312,9 +369,9 @@ export class HolographicSystem {
         const originalSelectGeometry = window.selectGeometry;
         
         window.selectGeometry = (index) => {
-            // If holographic system is active, handle as variant selection
+            // If holographic system is active, handle as geometry selection mapped to variants
             if (window.systemManager && window.systemManager.getCurrentSystemName() === 'holographic') {
-                this.selectVariant(index);
+                this.selectGeometry(Number(index));
             } else if (originalSelectGeometry) {
                 // Pass through to other systems
                 originalSelectGeometry(index);
@@ -368,11 +425,15 @@ export class HolographicSystem {
         if (slider) {
             slider.value = value;
         }
-        
+
+        if (param === 'geometry') {
+            this.highlightGeometryButtons(Number(value));
+        }
+
         // Update value display
         const displays = {
             rot4dXW: 'xwValue',
-            rot4dYW: 'ywValue', 
+            rot4dYW: 'ywValue',
             rot4dZW: 'zwValue',
             gridDensity: 'densityValue',
             morphFactor: 'morphValue',
@@ -402,30 +463,39 @@ export class HolographicSystem {
      * Select variant exactly like index.html - HOLOGRAPHIC SPECIFIC
      */
     selectVariant(index) {
-        console.log(`✨ HolographicSystem: Selecting holographic variant ${index} (${this.variantNames[index]})`);
-        
-        // Update UI
-        document.querySelectorAll('.geom-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.index == index);
-        });
-        
-        // Update variant in engine if active
-        if (this.engine && this.isActive) {
-            if (this.engine.setVariant) {
-                this.engine.setVariant(index);
+        const geometryIndex = this.getGeometryIndexForVariant(index);
+        const variantName = this.variantNames[index] || `VARIANT ${index}`;
+        console.log(`✨ HolographicSystem: Selecting holographic variant ${index} (${variantName})`);
+        this.applyVariant(index, geometryIndex);
+    }
+
+    applyVariant(variantIndex, geometryIndex = this.getGeometryIndexForVariant(variantIndex)) {
+        this.activeVariant = variantIndex;
+        this.activeGeometry = geometryIndex;
+
+        this.highlightGeometryButtons(geometryIndex);
+
+        if (this.engine) {
+            if (this.isActive) {
+                if (typeof this.engine.setVariant === 'function') {
+                    this.engine.setVariant(variantIndex);
+                } else if (typeof this.engine.updateVariant === 'function') {
+                    this.engine.updateVariant(variantIndex);
+                } else if (this.engine.currentVariant !== undefined) {
+                    this.engine.currentVariant = variantIndex;
+                    this.visualizers.forEach(visualizer => {
+                        if (typeof visualizer.setVariant === 'function') {
+                            visualizer.setVariant(variantIndex);
+                        }
+                    });
+                }
             } else if (this.engine.currentVariant !== undefined) {
-                this.engine.currentVariant = index;
-                // Update all visualizers with new variant
-                this.visualizers.forEach(visualizer => {
-                    if (visualizer.setVariant) {
-                        visualizer.setVariant(index);
-                    }
-                });
+                this.engine.currentVariant = variantIndex;
             }
         }
-        
-        // Update parameter
-        this.updateParameter('geometry', index);
+
+        this.parameters.set('variant', variantIndex);
+        this.updateParameter('geometry', geometryIndex);
     }
 
     /**

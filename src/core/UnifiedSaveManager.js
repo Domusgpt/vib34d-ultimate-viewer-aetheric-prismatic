@@ -21,33 +21,72 @@ export class UnifiedSaveManager {
      * Main save method with multiple output options
      */
     async save(options = {}) {
-        const variation = this.captureCurrentState();
-        
-        // Add metadata
+        const baseVariation = options.variation || this.captureCurrentState();
+
+        let variation;
+        if (typeof structuredClone === 'function') {
+            try {
+                variation = structuredClone(baseVariation);
+            } catch (error) {
+                console.warn('UnifiedSaveManager.save: structuredClone failed, falling back to JSON clone', error);
+            }
+        }
+
+        if (!variation) {
+            variation = JSON.parse(JSON.stringify(baseVariation));
+        }
+
+        variation.parameters = variation.parameters ? { ...variation.parameters } : {};
+        variation.metadata = variation.metadata ? { ...variation.metadata } : {};
+
+        const target = options.target || 'gallery';
+
+        // Refresh metadata for this save operation
         variation.id = this.generateUniqueId();
         variation.timestamp = Date.now();
         variation.created = new Date().toISOString();
-        
-        // Save based on target
-        switch (options.target || 'gallery') {
+        variation.metadata.lastSaved = variation.created;
+        variation.metadata.saveTarget = target;
+
+        let saveResult;
+
+        switch (target) {
             case 'localStorage':
-                return this.saveToLocalStorage(variation);
-                
+                saveResult = this.saveToLocalStorage(variation);
+                break;
+
             case 'download':
-                return this.saveToDownload(variation, options.format || 'json');
-                
+                saveResult = this.saveToDownload(variation, options.format || 'json');
+                break;
+
             case 'gallery':
-                return this.saveToGallery(variation);
-                
+                saveResult = await this.saveToGallery(variation);
+                break;
+
             case 'collection':
-                return this.saveToCollection(variation, options.collectionName);
-                
+                saveResult = this.saveToCollection(variation, options.collectionName);
+                break;
+
             case 'share':
-                return this.saveForSharing(variation);
-                
+                saveResult = this.saveForSharing(variation);
+                break;
+
             default:
-                return this.saveToGallery(variation);
+                saveResult = await this.saveToGallery(variation);
+                break;
         }
+
+        const response = {
+            ...(saveResult || {}),
+            target,
+            variation
+        };
+
+        if (response.success && !response.id) {
+            response.id = variation.id;
+        }
+
+        return response;
     }
     
     /**
@@ -344,7 +383,7 @@ export class UnifiedSaveManager {
             // 3. Update geometry selection if specified
             if (parameters.geometry !== undefined) {
                 const geometryValue = parseInt(parameters.geometry);
-                if (!isNaN(geometryValue) && geometryValue >= 0 && geometryValue <= 7) {
+                if (!isNaN(geometryValue) && geometryValue >= 0 && geometryValue <= 9) {
                     setTimeout(() => {
                         if (window.selectGeometry) {
                             window.selectGeometry(geometryValue);

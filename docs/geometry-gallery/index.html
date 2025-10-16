@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Geometry Preset Gallery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            color-scheme: light dark;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0b0f16;
+            color: #e8efff;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+        nav {
+            width: 18rem;
+            max-width: 100%;
+            background: rgba(9, 14, 22, 0.92);
+            border-right: 1px solid rgba(120, 140, 200, 0.3);
+            padding: 1.5rem 1rem;
+            position: sticky;
+            top: 0;
+            align-self: flex-start;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        nav h1 {
+            font-size: 1.1rem;
+            margin: 0 0 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: #7dd3ff;
+        }
+        .nav-link {
+            display: block;
+            padding: 0.4rem 0.6rem;
+            margin: 0.1rem 0;
+            border-radius: 0.5rem;
+            color: inherit;
+            text-decoration: none;
+            transition: background 160ms ease;
+        }
+        .nav-link:hover {
+            background: rgba(125, 211, 255, 0.18);
+        }
+        main {
+            flex: 1;
+            padding: 2rem 3vw 4rem;
+            overflow-x: hidden;
+        }
+        .summary-card {
+            background: rgba(10, 16, 28, 0.82);
+            border: 1px solid rgba(125, 211, 255, 0.25);
+            border-radius: 1.2rem;
+            padding: 1.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 20px 45px rgba(6, 12, 20, 0.55);
+        }
+        .summary-card h2 {
+            margin-top: 0;
+            font-size: 1.4rem;
+        }
+        .summary-card table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .summary-card th,
+        .summary-card td {
+            text-align: left;
+            padding: 0.4rem 0.5rem;
+        }
+        .summary-card thead {
+            color: rgba(232, 239, 255, 0.7);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .summary-card tbody tr:nth-child(odd) {
+            background: rgba(125, 211, 255, 0.08);
+        }
+        .summary-card .idx {
+            width: 3rem;
+        }
+        .summary-card .count {
+            text-align: right;
+        }
+        .geometry-card {
+            background: rgba(8, 12, 20, 0.78);
+            border: 1px solid rgba(125, 211, 255, 0.22);
+            border-radius: 1.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 25px 55px rgba(7, 13, 21, 0.65);
+            overflow: hidden;
+        }
+        .geometry-card header {
+            padding: 1.5rem 1.8rem 1rem;
+            border-bottom: 1px solid rgba(125, 211, 255, 0.18);
+            background: linear-gradient(135deg, rgba(28, 47, 89, 0.7), rgba(16, 25, 45, 0.6));
+        }
+        .geometry-card h2 {
+            margin: 0;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: baseline;
+            gap: 0.8rem;
+        }
+        .geometry-card h2 .index {
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.1rem;
+            height: 2.1rem;
+            border-radius: 0.6rem;
+            background: rgba(125, 211, 255, 0.28);
+            color: #0a1524;
+            font-weight: 700;
+        }
+        .geometry-card .subtitle {
+            margin: 0.35rem 0 0;
+            color: rgba(232, 239, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        .card-body {
+            display: grid;
+            grid-template-columns: minmax(220px, 280px) 1fr;
+            gap: 1.8rem;
+            padding: 1.5rem 1.8rem 2rem;
+        }
+        .icon-frame {
+            margin: 0;
+            background: rgba(6, 10, 18, 0.85);
+            border: 1px solid rgba(125, 211, 255, 0.18);
+            border-radius: 1.2rem;
+            padding: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-frame img {
+            display: block;
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 0 12px rgba(125, 211, 255, 0.35));
+        }
+        .icon-missing {
+            padding: 2rem;
+            text-align: center;
+            color: rgba(232, 239, 255, 0.6);
+        }
+        .card-content h3 {
+            margin: 0 0 0.8rem;
+            font-size: 1.05rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: rgba(125, 211, 255, 0.9);
+        }
+        .preset-list {
+            margin: 0 0 1.2rem;
+            padding: 0;
+            list-style: none;
+        }
+        .preset-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.35rem 0.5rem;
+            border-radius: 0.6rem;
+            background: rgba(125, 211, 255, 0.08);
+            margin-bottom: 0.4rem;
+        }
+        .preset-list .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.9rem;
+            height: 1.9rem;
+            border-radius: 0.55rem;
+            background: rgba(125, 211, 255, 0.26);
+            color: #051022;
+            font-weight: 700;
+        }
+        .parameter-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .parameter-table th,
+        .parameter-table td {
+            text-align: left;
+            padding: 0.45rem 0.55rem;
+        }
+        .parameter-table tbody tr:nth-child(odd) {
+            background: rgba(125, 211, 255, 0.06);
+        }
+        .parameter-table .raw {
+            font-family: 'Roboto Mono', 'SFMono-Regular', ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.85rem;
+            text-align: right;
+        }
+        footer {
+            margin-top: 3rem;
+            text-align: center;
+            color: rgba(232, 239, 255, 0.6);
+            font-size: 0.85rem;
+        }
+        @media (max-width: 1040px) {
+            body {
+                flex-direction: column;
+            }
+            nav {
+                width: auto;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid rgba(120, 140, 200, 0.3);
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                justify-content: center;
+            }
+            .nav-link {
+                border: 1px solid rgba(125, 211, 255, 0.2);
+            }
+            main {
+                padding: 1.5rem;
+            }
+            .card-body {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <h1>Geometry Gallery</h1>
+        <a href="#geometry-0" class="nav-link">0 — Tetrahedron</a>
+<a href="#geometry-1" class="nav-link">1 — Hypercube</a>
+<a href="#geometry-2" class="nav-link">2 — Sphere</a>
+<a href="#geometry-3" class="nav-link">3 — Torus</a>
+<a href="#geometry-4" class="nav-link">4 — Klein Bottle</a>
+<a href="#geometry-5" class="nav-link">5 — Fractal</a>
+<a href="#geometry-6" class="nav-link">6 — Wave</a>
+<a href="#geometry-7" class="nav-link">7 — Crystal</a>
+<a href="#geometry-8" class="nav-link">8 — Hypertetrahedron</a>
+<a href="#geometry-9" class="nav-link">9 — Hypersphere</a>
+    </nav>
+    <main>
+        <section class="summary-card">
+            <h2>Preset overview</h2>
+            <p>Generated 2025-10-10T17:45:09.405Z • 10 geometries • 38 preset slots • 10 icons</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="idx" scope="col">Index</th>
+                        <th scope="col">Geometry</th>
+                        <th class="count" scope="col">Preset slots</th>
+                        <th scope="col">Icon file</th>
+                    </tr>
+                </thead>
+                <tbody>
+            <tr>
+                <td class="idx">0</td>
+                <td>Tetrahedron</td>
+                <td class="count">4</td>
+                <td><code>00-tetrahedron.svg</code></td>
+            </tr>
+            <tr>
+                <td class="idx">1</td>
+                <td>Hypercube</td>
+                <td class="count">4</td>
+                <td><code>01-hypercube.svg</code></td>
+            </tr>
+            <tr>
+                <td class="idx">2</td>
+                <td>Sphere</td>
+                <td class="count">4</td>
+                <td><code>02-sphere.svg</code></td>
+            </tr>
+            <tr>
+                <td class="idx">3</td>
+                <td>Torus</td>
+                <td class="count">4</td>
+                <td><code>03-torus.svg</code></td>
+            </tr>
+            <tr>
+                <td class="idx">4</td>
+                <td>Klein Bottle</td>
+                <td class="count">4</td>
+                <td><code>04-klein-bottle.svg</code></td>
+            </tr>
+            <tr>
+                <td class="idx">5</td>
+                <td>Fractal</td>
+                <td class="count">3</td>
+                <td><code>05-fractal.svg</code></td>
+            </tr>
+            <tr>
+                <td class="idx">6</td>
+                <td>Wave</td>
+                <td class="count">3</td>
+                <td><code>06-wave.svg</code></td>
+            </tr>
+            <tr>
+                <td class="idx">7</td>
+                <td>Crystal</td>
+                <td class="count">4</td>
+                <td><code>07-crystal.svg</code></td>
+            </tr>
+            <tr>
+                <td class="idx">8</td>
+                <td>Hypertetrahedron</td>
+                <td class="count">4</td>
+                <td><code>08-hypertetrahedron.svg</code></td>
+            </tr>
+            <tr>
+                <td class="idx">9</td>
+                <td>Hypersphere</td>
+                <td class="count">4</td>
+                <td><code>09-hypersphere.svg</code></td>
+            </tr>
+                </tbody>
+            </table>
+        </section>
+        <section id="geometry-0" class="geometry-card">
+            <header>
+                <h2><span class="index">0</span> Tetrahedron</h2>
+                <p class="subtitle">4 preset slots • 6 segments</p>
+            </header>
+            <div class="card-body">
+                <figure class="icon-frame">
+                    <img src="../geometry-icons/00-tetrahedron.svg" alt="Tetrahedron silhouette" loading="lazy" />
+                </figure>
+                <div class="card-content">
+                    <h3>Preset labels</h3>
+                    <ol class="preset-list">
+                <li><span class="badge">1</span> TETRAHEDRON LATTICE 1</li>
+                <li><span class="badge">2</span> TETRAHEDRON LATTICE 2</li>
+                <li><span class="badge">3</span> TETRAHEDRON LATTICE 3</li>
+                <li><span class="badge">4</span> TETRAHEDRON LATTICE 4</li>
+                    </ol>
+                    <h3>Parameter envelopes</h3>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Parameter</th>
+                                <th scope="col">Range</th>
+                                <th scope="col" class="raw">Min</th>
+                                <th scope="col" class="raw">Max</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                <tr>
+                    <th scope="row">Grid density</th>
+                    <td>9.60 – 24</td>
+                    <td class="raw">9.60</td>
+                    <td class="raw">24</td>
+                </tr>
+                <tr>
+                    <th scope="row">Morph factor</th>
+                    <td>0.45 – 1.26</td>
+                    <td class="raw">0.45</td>
+                    <td class="raw">1.26</td>
+                </tr>
+                <tr>
+                    <th scope="row">Chaos</th>
+                    <td>0 – 0.45</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.45</td>
+                </tr>
+                <tr>
+                    <th scope="row">Speed</th>
+                    <td>0.80 – 1.40</td>
+                    <td class="raw">0.80</td>
+                    <td class="raw">1.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Hue</th>
+                    <td>0 – 45</td>
+                    <td class="raw">0</td>
+                    <td class="raw">45</td>
+                </tr>
+                <tr>
+                    <th scope="row">XW rotation</th>
+                    <td>-0.60 – 0.60</td>
+                    <td class="raw">-0.60</td>
+                    <td class="raw">0.60</td>
+                </tr>
+                <tr>
+                    <th scope="row">YW rotation</th>
+                    <td>0</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0</td>
+                </tr>
+                <tr>
+                    <th scope="row">ZW rotation</th>
+                    <td>0 – 0.40</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Dimension</th>
+                    <td>3.20 – 3.74</td>
+                    <td class="raw">3.20</td>
+                    <td class="raw">3.74</td>
+                </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="geometry-1" class="geometry-card">
+            <header>
+                <h2><span class="index">1</span> Hypercube</h2>
+                <p class="subtitle">4 preset slots • 32 segments</p>
+            </header>
+            <div class="card-body">
+                <figure class="icon-frame">
+                    <img src="../geometry-icons/01-hypercube.svg" alt="Hypercube silhouette" loading="lazy" />
+                </figure>
+                <div class="card-content">
+                    <h3>Preset labels</h3>
+                    <ol class="preset-list">
+                <li><span class="badge">1</span> HYPERCUBE LATTICE 1</li>
+                <li><span class="badge">2</span> HYPERCUBE LATTICE 2</li>
+                <li><span class="badge">3</span> HYPERCUBE LATTICE 3</li>
+                <li><span class="badge">4</span> HYPERCUBE LATTICE 4</li>
+                    </ol>
+                    <h3>Parameter envelopes</h3>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Parameter</th>
+                                <th scope="col">Range</th>
+                                <th scope="col" class="raw">Min</th>
+                                <th scope="col" class="raw">Max</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                <tr>
+                    <th scope="row">Grid density</th>
+                    <td>8 – 20</td>
+                    <td class="raw">8</td>
+                    <td class="raw">20</td>
+                </tr>
+                <tr>
+                    <th scope="row">Morph factor</th>
+                    <td>0.40 – 1.12</td>
+                    <td class="raw">0.40</td>
+                    <td class="raw">1.12</td>
+                </tr>
+                <tr>
+                    <th scope="row">Chaos</th>
+                    <td>0 – 0.45</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.45</td>
+                </tr>
+                <tr>
+                    <th scope="row">Speed</th>
+                    <td>0.80 – 1.40</td>
+                    <td class="raw">0.80</td>
+                    <td class="raw">1.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Hue</th>
+                    <td>45 – 90</td>
+                    <td class="raw">45</td>
+                    <td class="raw">90</td>
+                </tr>
+                <tr>
+                    <th scope="row">XW rotation</th>
+                    <td>-0.60 – 0.60</td>
+                    <td class="raw">-0.60</td>
+                    <td class="raw">0.60</td>
+                </tr>
+                <tr>
+                    <th scope="row">YW rotation</th>
+                    <td>0.30</td>
+                    <td class="raw">0.30</td>
+                    <td class="raw">0.30</td>
+                </tr>
+                <tr>
+                    <th scope="row">ZW rotation</th>
+                    <td>0 – 0.40</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Dimension</th>
+                    <td>3.20 – 3.74</td>
+                    <td class="raw">3.20</td>
+                    <td class="raw">3.74</td>
+                </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="geometry-2" class="geometry-card">
+            <header>
+                <h2><span class="index">2</span> Sphere</h2>
+                <p class="subtitle">4 preset slots • 216 segments</p>
+            </header>
+            <div class="card-body">
+                <figure class="icon-frame">
+                    <img src="../geometry-icons/02-sphere.svg" alt="Sphere silhouette" loading="lazy" />
+                </figure>
+                <div class="card-content">
+                    <h3>Preset labels</h3>
+                    <ol class="preset-list">
+                <li><span class="badge">1</span> SPHERE LATTICE 1</li>
+                <li><span class="badge">2</span> SPHERE LATTICE 2</li>
+                <li><span class="badge">3</span> SPHERE LATTICE 3</li>
+                <li><span class="badge">4</span> SPHERE LATTICE 4</li>
+                    </ol>
+                    <h3>Parameter envelopes</h3>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Parameter</th>
+                                <th scope="col">Range</th>
+                                <th scope="col" class="raw">Min</th>
+                                <th scope="col" class="raw">Max</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                <tr>
+                    <th scope="row">Grid density</th>
+                    <td>8 – 20</td>
+                    <td class="raw">8</td>
+                    <td class="raw">20</td>
+                </tr>
+                <tr>
+                    <th scope="row">Morph factor</th>
+                    <td>0.50 – 1.40</td>
+                    <td class="raw">0.50</td>
+                    <td class="raw">1.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Chaos</th>
+                    <td>0 – 0.67</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.67</td>
+                </tr>
+                <tr>
+                    <th scope="row">Speed</th>
+                    <td>0.80 – 1.40</td>
+                    <td class="raw">0.80</td>
+                    <td class="raw">1.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Hue</th>
+                    <td>90 – 135</td>
+                    <td class="raw">90</td>
+                    <td class="raw">135</td>
+                </tr>
+                <tr>
+                    <th scope="row">XW rotation</th>
+                    <td>-0.60 – 0.60</td>
+                    <td class="raw">-0.60</td>
+                    <td class="raw">0.60</td>
+                </tr>
+                <tr>
+                    <th scope="row">YW rotation</th>
+                    <td>0</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0</td>
+                </tr>
+                <tr>
+                    <th scope="row">ZW rotation</th>
+                    <td>0 – 0.40</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Dimension</th>
+                    <td>3.25 – 3.79</td>
+                    <td class="raw">3.25</td>
+                    <td class="raw">3.79</td>
+                </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="geometry-3" class="geometry-card">
+            <header>
+                <h2><span class="index">3</span> Torus</h2>
+                <p class="subtitle">4 preset slots • 456 segments</p>
+            </header>
+            <div class="card-body">
+                <figure class="icon-frame">
+                    <img src="../geometry-icons/03-torus.svg" alt="Torus silhouette" loading="lazy" />
+                </figure>
+                <div class="card-content">
+                    <h3>Preset labels</h3>
+                    <ol class="preset-list">
+                <li><span class="badge">1</span> TORUS LATTICE 1</li>
+                <li><span class="badge">2</span> TORUS LATTICE 2</li>
+                <li><span class="badge">3</span> TORUS LATTICE 3</li>
+                <li><span class="badge">4</span> TORUS LATTICE 4</li>
+                    </ol>
+                    <h3>Parameter envelopes</h3>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Parameter</th>
+                                <th scope="col">Range</th>
+                                <th scope="col" class="raw">Min</th>
+                                <th scope="col" class="raw">Max</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                <tr>
+                    <th scope="row">Grid density</th>
+                    <td>8 – 20</td>
+                    <td class="raw">8</td>
+                    <td class="raw">20</td>
+                </tr>
+                <tr>
+                    <th scope="row">Morph factor</th>
+                    <td>0.50 – 1.40</td>
+                    <td class="raw">0.50</td>
+                    <td class="raw">1.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Chaos</th>
+                    <td>0 – 0.45</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.45</td>
+                </tr>
+                <tr>
+                    <th scope="row">Speed</th>
+                    <td>1.04 – 1.82</td>
+                    <td class="raw">1.04</td>
+                    <td class="raw">1.82</td>
+                </tr>
+                <tr>
+                    <th scope="row">Hue</th>
+                    <td>135 – 180</td>
+                    <td class="raw">135</td>
+                    <td class="raw">180</td>
+                </tr>
+                <tr>
+                    <th scope="row">XW rotation</th>
+                    <td>-0.55 – 0.65</td>
+                    <td class="raw">-0.55</td>
+                    <td class="raw">0.65</td>
+                </tr>
+                <tr>
+                    <th scope="row">YW rotation</th>
+                    <td>0.25</td>
+                    <td class="raw">0.25</td>
+                    <td class="raw">0.25</td>
+                </tr>
+                <tr>
+                    <th scope="row">ZW rotation</th>
+                    <td>0 – 0.40</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Dimension</th>
+                    <td>3.20 – 3.74</td>
+                    <td class="raw">3.20</td>
+                    <td class="raw">3.74</td>
+                </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="geometry-4" class="geometry-card">
+            <header>
+                <h2><span class="index">4</span> Klein Bottle</h2>
+                <p class="subtitle">4 preset slots • 700 segments</p>
+            </header>
+            <div class="card-body">
+                <figure class="icon-frame">
+                    <img src="../geometry-icons/04-klein-bottle.svg" alt="Klein Bottle silhouette" loading="lazy" />
+                </figure>
+                <div class="card-content">
+                    <h3>Preset labels</h3>
+                    <ol class="preset-list">
+                <li><span class="badge">1</span> KLEIN BOTTLE LATTICE 1</li>
+                <li><span class="badge">2</span> KLEIN BOTTLE LATTICE 2</li>
+                <li><span class="badge">3</span> KLEIN BOTTLE LATTICE 3</li>
+                <li><span class="badge">4</span> KLEIN BOTTLE LATTICE 4</li>
+                    </ol>
+                    <h3>Parameter envelopes</h3>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Parameter</th>
+                                <th scope="col">Range</th>
+                                <th scope="col" class="raw">Min</th>
+                                <th scope="col" class="raw">Max</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                <tr>
+                    <th scope="row">Grid density</th>
+                    <td>5.60 – 14</td>
+                    <td class="raw">5.60</td>
+                    <td class="raw">14</td>
+                </tr>
+                <tr>
+                    <th scope="row">Morph factor</th>
+                    <td>0.70 – 1.96</td>
+                    <td class="raw">0.70</td>
+                    <td class="raw">1.96</td>
+                </tr>
+                <tr>
+                    <th scope="row">Chaos</th>
+                    <td>0 – 0.45</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.45</td>
+                </tr>
+                <tr>
+                    <th scope="row">Speed</th>
+                    <td>0.80 – 1.40</td>
+                    <td class="raw">0.80</td>
+                    <td class="raw">1.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Hue</th>
+                    <td>180 – 225</td>
+                    <td class="raw">180</td>
+                    <td class="raw">225</td>
+                </tr>
+                <tr>
+                    <th scope="row">XW rotation</th>
+                    <td>-0.60 – 0.60</td>
+                    <td class="raw">-0.60</td>
+                    <td class="raw">0.60</td>
+                </tr>
+                <tr>
+                    <th scope="row">YW rotation</th>
+                    <td>0</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0</td>
+                </tr>
+                <tr>
+                    <th scope="row">ZW rotation</th>
+                    <td>0.05 – 0.45</td>
+                    <td class="raw">0.05</td>
+                    <td class="raw">0.45</td>
+                </tr>
+                <tr>
+                    <th scope="row">Dimension</th>
+                    <td>3.20 – 3.74</td>
+                    <td class="raw">3.20</td>
+                    <td class="raw">3.74</td>
+                </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="geometry-5" class="geometry-card">
+            <header>
+                <h2><span class="index">5</span> Fractal</h2>
+                <p class="subtitle">3 preset slots • 15 segments</p>
+            </header>
+            <div class="card-body">
+                <figure class="icon-frame">
+                    <img src="../geometry-icons/05-fractal.svg" alt="Fractal silhouette" loading="lazy" />
+                </figure>
+                <div class="card-content">
+                    <h3>Preset labels</h3>
+                    <ol class="preset-list">
+                <li><span class="badge">1</span> FRACTAL LATTICE 1</li>
+                <li><span class="badge">2</span> FRACTAL LATTICE 2</li>
+                <li><span class="badge">3</span> FRACTAL LATTICE 3</li>
+                    </ol>
+                    <h3>Parameter envelopes</h3>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Parameter</th>
+                                <th scope="col">Range</th>
+                                <th scope="col" class="raw">Min</th>
+                                <th scope="col" class="raw">Max</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                <tr>
+                    <th scope="row">Grid density</th>
+                    <td>4.80 – 9.60</td>
+                    <td class="raw">4.80</td>
+                    <td class="raw">9.60</td>
+                </tr>
+                <tr>
+                    <th scope="row">Morph factor</th>
+                    <td>0.50 – 1.10</td>
+                    <td class="raw">0.50</td>
+                    <td class="raw">1.10</td>
+                </tr>
+                <tr>
+                    <th scope="row">Chaos</th>
+                    <td>0 – 0.60</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.60</td>
+                </tr>
+                <tr>
+                    <th scope="row">Speed</th>
+                    <td>0.80 – 1.20</td>
+                    <td class="raw">0.80</td>
+                    <td class="raw">1.20</td>
+                </tr>
+                <tr>
+                    <th scope="row">Hue</th>
+                    <td>225 – 255</td>
+                    <td class="raw">225</td>
+                    <td class="raw">255</td>
+                </tr>
+                <tr>
+                    <th scope="row">XW rotation</th>
+                    <td>-0.50 – 0.30</td>
+                    <td class="raw">-0.50</td>
+                    <td class="raw">0.30</td>
+                </tr>
+                <tr>
+                    <th scope="row">YW rotation</th>
+                    <td>0.25</td>
+                    <td class="raw">0.25</td>
+                    <td class="raw">0.25</td>
+                </tr>
+                <tr>
+                    <th scope="row">ZW rotation</th>
+                    <td>0 – 0.40</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Dimension</th>
+                    <td>3.20 – 3.56</td>
+                    <td class="raw">3.20</td>
+                    <td class="raw">3.56</td>
+                </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="geometry-6" class="geometry-card">
+            <header>
+                <h2><span class="index">6</span> Wave</h2>
+                <p class="subtitle">3 preset slots • 64 segments</p>
+            </header>
+            <div class="card-body">
+                <figure class="icon-frame">
+                    <img src="../geometry-icons/06-wave.svg" alt="Wave silhouette" loading="lazy" />
+                </figure>
+                <div class="card-content">
+                    <h3>Preset labels</h3>
+                    <ol class="preset-list">
+                <li><span class="badge">1</span> WAVE LATTICE 1</li>
+                <li><span class="badge">2</span> WAVE LATTICE 2</li>
+                <li><span class="badge">3</span> WAVE LATTICE 3</li>
+                    </ol>
+                    <h3>Parameter envelopes</h3>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Parameter</th>
+                                <th scope="col">Range</th>
+                                <th scope="col" class="raw">Min</th>
+                                <th scope="col" class="raw">Max</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                <tr>
+                    <th scope="row">Grid density</th>
+                    <td>8 – 16</td>
+                    <td class="raw">8</td>
+                    <td class="raw">16</td>
+                </tr>
+                <tr>
+                    <th scope="row">Morph factor</th>
+                    <td>0.50 – 1.10</td>
+                    <td class="raw">0.50</td>
+                    <td class="raw">1.10</td>
+                </tr>
+                <tr>
+                    <th scope="row">Chaos</th>
+                    <td>0 – 0.15</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.15</td>
+                </tr>
+                <tr>
+                    <th scope="row">Speed</th>
+                    <td>1.28 – 1.92</td>
+                    <td class="raw">1.28</td>
+                    <td class="raw">1.92</td>
+                </tr>
+                <tr>
+                    <th scope="row">Hue</th>
+                    <td>270 – 300</td>
+                    <td class="raw">270</td>
+                    <td class="raw">300</td>
+                </tr>
+                <tr>
+                    <th scope="row">XW rotation</th>
+                    <td>-0.60 – 0.20</td>
+                    <td class="raw">-0.60</td>
+                    <td class="raw">0.20</td>
+                </tr>
+                <tr>
+                    <th scope="row">YW rotation</th>
+                    <td>0.10</td>
+                    <td class="raw">0.10</td>
+                    <td class="raw">0.10</td>
+                </tr>
+                <tr>
+                    <th scope="row">ZW rotation</th>
+                    <td>0 – 0.40</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Dimension</th>
+                    <td>3.20 – 3.56</td>
+                    <td class="raw">3.20</td>
+                    <td class="raw">3.56</td>
+                </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="geometry-7" class="geometry-card">
+            <header>
+                <h2><span class="index">7</span> Crystal</h2>
+                <p class="subtitle">4 preset slots • 12 segments</p>
+            </header>
+            <div class="card-body">
+                <figure class="icon-frame">
+                    <img src="../geometry-icons/07-crystal.svg" alt="Crystal silhouette" loading="lazy" />
+                </figure>
+                <div class="card-content">
+                    <h3>Preset labels</h3>
+                    <ol class="preset-list">
+                <li><span class="badge">1</span> CRYSTAL LATTICE 1</li>
+                <li><span class="badge">2</span> CRYSTAL LATTICE 2</li>
+                <li><span class="badge">3</span> CRYSTAL LATTICE 3</li>
+                <li><span class="badge">4</span> CRYSTAL LATTICE 4</li>
+                    </ol>
+                    <h3>Parameter envelopes</h3>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Parameter</th>
+                                <th scope="col">Range</th>
+                                <th scope="col" class="raw">Min</th>
+                                <th scope="col" class="raw">Max</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                <tr>
+                    <th scope="row">Grid density</th>
+                    <td>12 – 30</td>
+                    <td class="raw">12</td>
+                    <td class="raw">30</td>
+                </tr>
+                <tr>
+                    <th scope="row">Morph factor</th>
+                    <td>0.30 – 0.84</td>
+                    <td class="raw">0.30</td>
+                    <td class="raw">0.84</td>
+                </tr>
+                <tr>
+                    <th scope="row">Chaos</th>
+                    <td>0 – 0.45</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.45</td>
+                </tr>
+                <tr>
+                    <th scope="row">Speed</th>
+                    <td>0.80 – 1.40</td>
+                    <td class="raw">0.80</td>
+                    <td class="raw">1.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Hue</th>
+                    <td>0 – 345</td>
+                    <td class="raw">0</td>
+                    <td class="raw">345</td>
+                </tr>
+                <tr>
+                    <th scope="row">XW rotation</th>
+                    <td>-0.60 – 0.60</td>
+                    <td class="raw">-0.60</td>
+                    <td class="raw">0.60</td>
+                </tr>
+                <tr>
+                    <th scope="row">YW rotation</th>
+                    <td>0.25</td>
+                    <td class="raw">0.25</td>
+                    <td class="raw">0.25</td>
+                </tr>
+                <tr>
+                    <th scope="row">ZW rotation</th>
+                    <td>0.05 – 0.45</td>
+                    <td class="raw">0.05</td>
+                    <td class="raw">0.45</td>
+                </tr>
+                <tr>
+                    <th scope="row">Dimension</th>
+                    <td>3.20 – 3.74</td>
+                    <td class="raw">3.20</td>
+                    <td class="raw">3.74</td>
+                </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="geometry-8" class="geometry-card">
+            <header>
+                <h2><span class="index">8</span> Hypertetrahedron</h2>
+                <p class="subtitle">4 preset slots • 10 segments</p>
+            </header>
+            <div class="card-body">
+                <figure class="icon-frame">
+                    <img src="../geometry-icons/08-hypertetrahedron.svg" alt="Hypertetrahedron silhouette" loading="lazy" />
+                </figure>
+                <div class="card-content">
+                    <h3>Preset labels</h3>
+                    <ol class="preset-list">
+                <li><span class="badge">1</span> HYPERTETRAHEDRON LATTICE 1</li>
+                <li><span class="badge">2</span> HYPERTETRAHEDRON LATTICE 2</li>
+                <li><span class="badge">3</span> HYPERTETRAHEDRON LATTICE 3</li>
+                <li><span class="badge">4</span> HYPERTETRAHEDRON LATTICE 4</li>
+                    </ol>
+                    <h3>Parameter envelopes</h3>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Parameter</th>
+                                <th scope="col">Range</th>
+                                <th scope="col" class="raw">Min</th>
+                                <th scope="col" class="raw">Max</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                <tr>
+                    <th scope="row">Grid density</th>
+                    <td>10 – 25</td>
+                    <td class="raw">10</td>
+                    <td class="raw">25</td>
+                </tr>
+                <tr>
+                    <th scope="row">Morph factor</th>
+                    <td>0.38 – 1.05</td>
+                    <td class="raw">0.38</td>
+                    <td class="raw">1.05</td>
+                </tr>
+                <tr>
+                    <th scope="row">Chaos</th>
+                    <td>0 – 0.45</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.45</td>
+                </tr>
+                <tr>
+                    <th scope="row">Speed</th>
+                    <td>0.80 – 1.40</td>
+                    <td class="raw">0.80</td>
+                    <td class="raw">1.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Hue</th>
+                    <td>0 – 45</td>
+                    <td class="raw">0</td>
+                    <td class="raw">45</td>
+                </tr>
+                <tr>
+                    <th scope="row">XW rotation</th>
+                    <td>-0.60 – 0.60</td>
+                    <td class="raw">-0.60</td>
+                    <td class="raw">0.60</td>
+                </tr>
+                <tr>
+                    <th scope="row">YW rotation</th>
+                    <td>-0.22 – 0.22</td>
+                    <td class="raw">-0.22</td>
+                    <td class="raw">0.22</td>
+                </tr>
+                <tr>
+                    <th scope="row">ZW rotation</th>
+                    <td>0.10 – 0.50</td>
+                    <td class="raw">0.10</td>
+                    <td class="raw">0.50</td>
+                </tr>
+                <tr>
+                    <th scope="row">Dimension</th>
+                    <td>3.28 – 3.82</td>
+                    <td class="raw">3.28</td>
+                    <td class="raw">3.82</td>
+                </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="geometry-9" class="geometry-card">
+            <header>
+                <h2><span class="index">9</span> Hypersphere</h2>
+                <p class="subtitle">4 preset slots • 120 segments</p>
+            </header>
+            <div class="card-body">
+                <figure class="icon-frame">
+                    <img src="../geometry-icons/09-hypersphere.svg" alt="Hypersphere silhouette" loading="lazy" />
+                </figure>
+                <div class="card-content">
+                    <h3>Preset labels</h3>
+                    <ol class="preset-list">
+                <li><span class="badge">1</span> HYPERSPHERE LATTICE 1</li>
+                <li><span class="badge">2</span> HYPERSPHERE LATTICE 2</li>
+                <li><span class="badge">3</span> HYPERSPHERE LATTICE 3</li>
+                <li><span class="badge">4</span> HYPERSPHERE LATTICE 4</li>
+                    </ol>
+                    <h3>Parameter envelopes</h3>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Parameter</th>
+                                <th scope="col">Range</th>
+                                <th scope="col" class="raw">Min</th>
+                                <th scope="col" class="raw">Max</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                <tr>
+                    <th scope="row">Grid density</th>
+                    <td>6.80 – 17</td>
+                    <td class="raw">6.80</td>
+                    <td class="raw">17</td>
+                </tr>
+                <tr>
+                    <th scope="row">Morph factor</th>
+                    <td>0.50 – 1.40</td>
+                    <td class="raw">0.50</td>
+                    <td class="raw">1.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Chaos</th>
+                    <td>0 – 0.63</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.63</td>
+                </tr>
+                <tr>
+                    <th scope="row">Speed</th>
+                    <td>0.88 – 1.54</td>
+                    <td class="raw">0.88</td>
+                    <td class="raw">1.54</td>
+                </tr>
+                <tr>
+                    <th scope="row">Hue</th>
+                    <td>45 – 90</td>
+                    <td class="raw">45</td>
+                    <td class="raw">90</td>
+                </tr>
+                <tr>
+                    <th scope="row">XW rotation</th>
+                    <td>-0.40 – 0.80</td>
+                    <td class="raw">-0.40</td>
+                    <td class="raw">0.80</td>
+                </tr>
+                <tr>
+                    <th scope="row">YW rotation</th>
+                    <td>0.25</td>
+                    <td class="raw">0.25</td>
+                    <td class="raw">0.25</td>
+                </tr>
+                <tr>
+                    <th scope="row">ZW rotation</th>
+                    <td>0 – 0.40</td>
+                    <td class="raw">0</td>
+                    <td class="raw">0.40</td>
+                </tr>
+                <tr>
+                    <th scope="row">Dimension</th>
+                    <td>3.32 – 3.86</td>
+                    <td class="raw">3.32</td>
+                    <td class="raw">3.86</td>
+                </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <footer>
+            Generated by <code>npm run geometry:gallery</code>. Source metadata from <code>variationPresets.js</code> and <code>docs/geometry-icons/metadata.json</code>.
+        </footer>
+    </main>
+</body>
+</html>

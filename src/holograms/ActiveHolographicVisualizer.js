@@ -57,10 +57,11 @@ export class ActiveHolographicVisualizer {
     
     generateVariantParams(variant) {
         const vib3Geometries = [
-            'TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 
-            'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'
+            'TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS',
+            'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL',
+            'HYPERTETRAHEDRON', 'HYPERSPHERE'
         ];
-        
+
         const geometryMap = [
             0, 0, 0, 0,  // 0-3: TETRAHEDRON variations
             1, 1, 1, 1,  // 4-7: HYPERCUBE variations
@@ -69,7 +70,9 @@ export class ActiveHolographicVisualizer {
             4, 4, 4, 4,  // 16-19: KLEIN BOTTLE variations
             5, 5, 5,     // 20-22: FRACTAL variations
             6, 6, 6,     // 23-25: WAVE variations
-            7, 7, 7, 7   // 26-29: CRYSTAL variations
+            7, 7, 7, 7,  // 26-29: CRYSTAL variations
+            8, 8, 8, 8,  // 30-33: HYPERTETRAHEDRON variations
+            9, 9, 9, 9   // 34-37: HYPERSPHERE variations
         ];
         
         const baseGeometry = geometryMap[variant] || 0;
@@ -87,7 +90,9 @@ export class ActiveHolographicVisualizer {
             4: { density: 1.4 + variationLevel * 0.5, speed: 0.7 + variationLevel * 0.1, chaos: 0.3 + variationLevel * 0.2, morph: 0.7 + variationLevel * 0.1 },
             5: { density: 1.8 + variationLevel * 0.3, speed: 0.5 + variationLevel * 0.3, chaos: 0.5 + variationLevel * 0.2, morph: 0.8 + variationLevel * 0.05 },
             6: { density: 0.6 + variationLevel * 0.4, speed: 0.8 + variationLevel * 0.4, chaos: 0.4 + variationLevel * 0.3, morph: 0.6 + variationLevel * 0.2 },
-            7: { density: 1.6 + variationLevel * 0.2, speed: 0.2 + variationLevel * 0.1, chaos: 0.1 + variationLevel * 0.1, morph: 0.2 + variationLevel * 0.2 }
+            7: { density: 1.6 + variationLevel * 0.2, speed: 0.2 + variationLevel * 0.1, chaos: 0.1 + variationLevel * 0.1, morph: 0.2 + variationLevel * 0.2 },
+            8: { density: 1.1 + variationLevel * 0.3, speed: 0.35 + variationLevel * 0.15, chaos: 0.2 + variationLevel * 0.15, morph: 0.4 + variationLevel * 0.2 },
+            9: { density: 0.9 + variationLevel * 0.35, speed: 0.45 + variationLevel * 0.2, chaos: 0.3 + variationLevel * 0.1, morph: 0.5 + variationLevel * 0.15 }
         };
         
         const config = geometryConfigs[baseGeometry];
@@ -270,11 +275,54 @@ float crystalLattice(vec3 p, float gridSize) {
     return 1.0 - smoothstep(0.3, 0.5, d);
 }
 
+float hypertetrahedronLattice(vec3 p, float gridSize) {
+    vec4 sample = vec4(p, sin(dot(p, vec3(1.2, 1.1, 1.3)) + u_time * 0.002));
+    vec4 cell = fract(sample * gridSize) - 0.5;
+    vec4 dir0 = normalize(vec4(1.0, 1.0, 1.0, -1.0));
+    vec4 dir1 = normalize(vec4(1.0, -1.0, -1.0, -1.0));
+    vec4 dir2 = normalize(vec4(-1.0, 1.0, -1.0, -1.0));
+    vec4 dir3 = normalize(vec4(-1.0, -1.0, 1.0, -1.0));
+    vec4 dir4 = normalize(vec4(0.0, 0.0, 0.0, 2.0));
+
+    float d0 = abs(dot(cell, dir0));
+    float d1 = abs(dot(cell, dir1));
+    float d2 = abs(dot(cell, dir2));
+    float d3 = abs(dot(cell, dir3));
+    float d4 = abs(dot(cell, dir4));
+
+    float facet = min(min(min(d0, d1), min(d2, d3)), d4);
+    float shells = abs(fract(facet * 5.0) - 0.5) * 2.0;
+    float apex = abs(sin(d4 * 9.0));
+    float radial = abs(sin(length(cell.xyz) * 7.0 + cell.w * 6.0));
+    float pattern = min(shells, min(apex, radial));
+
+    return 1.0 - smoothstep(0.0, 0.6, pattern);
+}
+
+float hypersphereLattice(vec3 p, float gridSize) {
+    float w = sin(dot(p, vec3(0.9, 1.4, 1.1)) + u_time * 0.0025);
+    vec4 sample = vec4(p, w);
+    float radius4 = length(sample);
+    float radius3 = length(p);
+
+    float shells = abs(fract(radius4 * gridSize) - 0.5) * 2.0;
+    float chi = atan(sample.w, radius3 + 1e-5);
+    float theta = atan(length(p.xy), p.z + 1e-5);
+    float phi = atan(p.y, p.x + 1e-5);
+
+    float chiBands = abs(sin(chi * (gridSize * 6.0 + 2.5)));
+    float thetaBands = abs(sin(theta * (gridSize * 4.5 + 2.0)));
+    float phiBands = abs(sin(phi * (gridSize * 3.5 + 2.5)));
+    float pattern = min(shells, min(chiBands, min(thetaBands, phiBands)));
+
+    return 1.0 - smoothstep(0.0, 0.6, pattern);
+}
+
 float getDynamicGeometry(vec3 p, float gridSize, float geometryType) {
-    int baseGeom = int(mod(geometryType, 8.0));
-    float variation = floor(geometryType / 8.0) / 4.0;
+    int baseGeom = int(mod(geometryType, 10.0));
+    float variation = floor(geometryType / 10.0) / 4.0;
     float variedGridSize = gridSize * (0.5 + variation * 1.5);
-    
+
     if (baseGeom == 0) return tetrahedronLattice(p, variedGridSize);
     else if (baseGeom == 1) return hypercubeLattice(p, variedGridSize);
     else if (baseGeom == 2) return sphereLattice(p, variedGridSize);
@@ -282,7 +330,9 @@ float getDynamicGeometry(vec3 p, float gridSize, float geometryType) {
     else if (baseGeom == 4) return kleinLattice(p, variedGridSize);
     else if (baseGeom == 5) return fractalLattice(p, variedGridSize);
     else if (baseGeom == 6) return waveLattice(p, variedGridSize);
-    else return crystalLattice(p, variedGridSize);
+    else if (baseGeom == 7) return crystalLattice(p, variedGridSize);
+    else if (baseGeom == 8) return hypertetrahedronLattice(p, variedGridSize);
+    else return hypersphereLattice(p, variedGridSize);
 }
 
 vec3 hsv2rgb(vec3 c) {
